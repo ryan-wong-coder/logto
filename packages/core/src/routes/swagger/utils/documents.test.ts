@@ -146,6 +146,37 @@ describe('assembleSwaggerDocument', () => {
     expect(document.tags).toEqual([]);
   });
 
+  it('keeps a base tag declared by another visible supplement', () => {
+    Reflect.set(EnvSet.values, 'isCloud', false);
+    Reflect.set(EnvSet.values, 'isSelfHostedParityEnabled', false);
+    const originalBase = createBaseDocument();
+    const base: OpenAPIV3.Document = {
+      ...originalBase,
+      tags: [{ name: 'Organization applications' }],
+    };
+    const supplement: DeepPartial<OpenAPIV3.Document> = {
+      tags: [
+        {
+          name: 'Organization applications',
+          description: 'Manage application relationships for an organization.',
+        },
+      ],
+    };
+
+    const document = assembleSwaggerDocument(
+      [supplement],
+      base,
+      createContextWithRouteParameters()
+    );
+
+    expect(document.tags).toEqual([
+      {
+        name: 'Organization applications',
+        description: 'Manage application relationships for an organization.',
+      },
+    ]);
+  });
+
   it('should prune dev feature properties from the assembled document when dev features are disabled', () => {
     setDevFeaturesEnabled(false);
 
