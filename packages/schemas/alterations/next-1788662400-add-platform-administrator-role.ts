@@ -17,7 +17,9 @@ const alteration: AlterationScript = {
         false
       )
       on conflict (tenant_id, name) do nothing;
+    `);
 
+    await pool.query(sql`
       insert into users_roles (tenant_id, id, user_id, role_id)
       select
         'admin',
