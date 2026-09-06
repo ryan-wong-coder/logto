@@ -22,6 +22,7 @@ const config: Config.InitialOptions = {
     '\\.(png)$': 'jest-transform-stub',
   },
   moduleNameMapper: {
+    '^@logto/core-kit/assets/(.*)\\.svg\\?url$': '<rootDir>/../toolkit/core-kit/assets/$1.svg',
     '^@/(.*)\\.svg\\?url$': '<rootDir>/src/$1.svg',
     '^@/(.*)\\.svg\\?react$': '<rootDir>/src/$1.svg',
     '^@/(.*)$': '<rootDir>/src/$1',
