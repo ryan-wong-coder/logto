@@ -284,7 +284,10 @@ describe('ExperienceInteraction class', () => {
             mfa: { enabled: false },
           },
         },
-        { isInteractive: true, roleNames: ['user', 'default:admin'] }
+        {
+          isInteractive: true,
+          roleNames: ['user', 'platformAdministrator', 'default:admin'],
+        }
       );
 
       expect(signInExperiences.updateDefaultSignInExperience).toHaveBeenCalledWith({
