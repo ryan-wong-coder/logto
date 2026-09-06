@@ -16,6 +16,7 @@ import {
   createCloudApi,
   createTenantApplicationRole,
   createPlatformAdministratorRole,
+  AdminTenantRole,
   CloudScope,
   Roles,
   type Role,
@@ -247,6 +248,8 @@ export const seedCloud = async (connection: DatabaseTransactionConnection) => {
  *
  * - `test-1` will be assigned the management roles for both `default` and `admin` tenant.
  * - `test-2`  will be assigned the management role for `default` tenant.
+ * - Both users will be assigned the platform administrator role because both administer the
+ *   `default` tenant organization.
  */
 export const seedTest = async (connection: DatabaseTransactionConnection, forLegacy = false) => {
   const roles = convertToIdentifiers(Roles);
@@ -332,5 +335,15 @@ export const seedTest = async (connection: DatabaseTransactionConnection, forLeg
     assignOrganizationRole(userIds[0], defaultTenantId, TenantRole.Admin),
     assignOrganizationRole(userIds[1], defaultTenantId, TenantRole.Admin),
   ]);
+
+  const platformAdministratorRole = await connection.one<Role>(sql`
+    select ${roles.fields.id}
+    from ${roles.table}
+    where ${roles.fields.tenantId} = ${adminTenantId}
+      and ${roles.fields.name} = ${AdminTenantRole.PlatformAdministrator}
+  `);
+  await Promise.all(
+    userIds.map(async (userId) => assignRoleToUser(userId, platformAdministratorRole.id))
+  );
   consoleLog.succeed('Assigned tenant organization membership and roles to the test users');
 };
