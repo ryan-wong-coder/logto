@@ -9,16 +9,8 @@
   align-items: center;
   justify-content: center;
   background:
-    linear-gradient(
-      90deg,
-      rgba(93, 52, 242, 5%) 0%,
-      rgba(93, 52, 242, 5%) 100%
-    ),
-    linear-gradient(
-      90deg,
-      rgba(120, 118, 127, 2%) 0%,
-      rgba(120, 118, 127, 2%) 100%
-    ),
+    linear-gradient(90deg, rgba(93, 52, 242, 5%) 0%, rgba(93, 52, 242, 5%) 100%),
+    linear-gradient(90deg, rgba(120, 118, 127, 2%) 0%, rgba(120, 118, 127, 2%) 100%),
     linear-gradient(90deg, rgb(247, 248, 248) 0%, rgb(247, 248, 248) 100%);
   padding: _.unit(10) _.unit(5);
 
@@ -370,6 +362,12 @@
     background: var(--color-primary);
     mask: url('@logto/core-kit/assets/iden-mark.svg') center / contain no-repeat;
   }
+
+  .customBrandMark {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
 }
 
 @media (prefers-color-scheme: light) {
@@ -393,16 +391,8 @@
 
   .app {
     background:
-      linear-gradient(
-        90deg,
-        rgba(93, 52, 242, 8%) 0%,
-        rgba(93, 52, 242, 8%) 100%
-      ),
-      linear-gradient(
-        90deg,
-        rgba(120, 118, 127, 4%) 0%,
-        rgba(120, 118, 127, 4%) 100%
-      ),
+      linear-gradient(90deg, rgba(93, 52, 242, 8%) 0%, rgba(93, 52, 242, 8%) 100%),
+      linear-gradient(90deg, rgba(120, 118, 127, 4%) 0%, rgba(120, 118, 127, 4%) 100%),
       linear-gradient(90deg, rgb(26, 28, 30) 0%, rgb(26, 28, 30) 100%);
   }
 

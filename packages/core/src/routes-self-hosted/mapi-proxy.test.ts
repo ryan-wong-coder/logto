@@ -31,7 +31,11 @@ const gotRequest = new Proxy(
 
 jest.unstable_mockModule('got', () => ({ got: gotRequest }));
 jest.unstable_mockModule('#src/middleware/koa-auth/index.js', () => ({
-  verifyBearerTokenFromRequest: jest.fn(async () => ({ scopes: [TenantScope.ReadData] })),
+  verifyBearerTokenFromRequest: jest.fn(async () => ({
+    sub: 'user-id',
+    clientId: undefined,
+    scopes: [TenantScope.ReadData],
+  })),
 }));
 
 const { default: initSelfHostedMapiProxy, shouldForwardProxyResponseHeader } = await import(

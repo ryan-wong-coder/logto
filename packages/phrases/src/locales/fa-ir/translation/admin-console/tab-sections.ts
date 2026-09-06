@@ -1,4 +1,5 @@
 const tab_sections = {
+  platform: 'پلتفرم',
   overview: 'نمای کلی',
   authentication: 'احراز هویت',
   authorization: 'مجوزدهی',

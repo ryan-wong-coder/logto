@@ -1,4 +1,5 @@
 const tab_sections = {
+  platform: 'Platforma',
   overview: 'Przegląd',
   authentication: 'Uwierzytelnianie',
   authorization: 'Autoryzacja',

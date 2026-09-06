@@ -1,0 +1,26 @@
+const platform = {
+  title: '平台设置',
+  subtitle: '管理跨租户的平台管理员和全局平台外观。',
+  branding_title: '平台品牌',
+  branding_description: '统一应用于控制台、登录注册、账户中心、演示应用和帮助中心。',
+  product_name: '产品名称',
+  slogan: '品牌标语',
+  light_logo: '亮色主题标识',
+  dark_logo: '暗色主题标识',
+  upload_logo: '上传标识',
+  uploading: '正在上传…',
+  logo_uploaded: '标识已上传',
+  hide_open_source_notice: '隐藏开源声明',
+  hide_open_source_notice_description: '隐藏界面中的归属链接，同时保留许可证和源码声明文件。',
+  save: '保存更改',
+  saving: '正在保存…',
+  saved: '平台品牌已保存',
+  administrators_title: '平台管理员',
+  administrators_description: '平台管理员可以管理全部租户和所有实例级设置。',
+  administrator_identifier_placeholder: '用户 ID、用户名或邮箱',
+  add_administrator: '添加管理员',
+  administrator_added: '平台管理员已添加',
+  remove_administrator: '移除平台管理员',
+};
+
+export default Object.freeze(platform);

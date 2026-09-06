@@ -1,4 +1,5 @@
 const tab_sections = {
+  platform: 'แพลตฟอร์ม',
   overview: 'ภาพรวม',
   authentication: 'การพิสูจน์ตัวตน',
   authorization: 'การให้สิทธิ์',

@@ -1,4 +1,5 @@
 const tabs = {
+  platform_settings: 'การตั้งค่าแพลตฟอร์ม',
   actions: 'Actions',
   get_started: 'เริ่มต้นใช้งาน',
   dashboard: 'แดชบอร์ด',

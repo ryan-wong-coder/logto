@@ -17,6 +17,7 @@ import { enterpriseSso } from './routes/enterprise-sso';
 import { mfa } from './routes/mfa';
 import { organizationTemplate } from './routes/organization-template';
 import { organizations } from './routes/organizations';
+import { platformSettings } from './routes/platform-settings';
 import { roles } from './routes/roles';
 import { security } from './routes/security';
 import { signInExperience } from './routes/sign-in-experience';
@@ -52,6 +53,7 @@ export const useConsoleRoutes = () => {
         roles,
         organizationTemplate,
         organizations,
+        platformSettings,
         {
           path: 'signing-keys',
           // Deprecated page, redirect to oidc-configs in the tenant settings page.

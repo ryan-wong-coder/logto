@@ -190,13 +190,24 @@ const CloudSignature = ({ className, theme }: Props) => {
   );
 };
 
-const IdenSignature = ({ className }: Pick<Props, 'className'>) => {
+const IdenSignature = ({ className, theme }: Props) => {
   const { t: tUi, i18n } = useInterfaceTranslation();
+  const logoUrl =
+    theme === Theme.Dark
+      ? (productBrand.darkLogoUrl ?? productBrand.logoUrl)
+      : (productBrand.logoUrl ?? productBrand.darkLogoUrl);
   return (
     <div className={className}>
-      <a className={styles.idenSignature} href={`/help/${i18n.resolvedLanguage}/about`}>
+      <a
+        className={styles.idenSignature}
+        href={`/help/${i18n.resolvedLanguage}/${productBrand.hideOpenSourceNotice ? '' : 'about'}`}
+      >
         <span>{tUi('powered_by')}</span>
-        <span aria-hidden className={styles.idenMark} />
+        {logoUrl ? (
+          <img alt="" className={styles.customBrandMark} src={logoUrl} />
+        ) : (
+          <span aria-hidden className={styles.idenMark} />
+        )}
         <strong>{productBrand.productName}</strong>
       </a>
     </div>
@@ -204,6 +215,6 @@ const IdenSignature = ({ className }: Pick<Props, 'className'>) => {
 };
 
 const LogtoSignature = (props: Props) =>
-  isCloudBuild ? <CloudSignature {...props} /> : <IdenSignature className={props.className} />;
+  isCloudBuild ? <CloudSignature {...props} /> : <IdenSignature {...props} />;
 
 export default LogtoSignature;

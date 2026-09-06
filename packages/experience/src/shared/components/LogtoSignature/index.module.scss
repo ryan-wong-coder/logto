@@ -66,6 +66,12 @@
   mask: url('@logto/core-kit/assets/iden-mark.svg') center / contain no-repeat;
 }
 
+.customBrandMark {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
 :global(body.mobile) {
   .signature {
     color: var(--color-neutral-variant-80);

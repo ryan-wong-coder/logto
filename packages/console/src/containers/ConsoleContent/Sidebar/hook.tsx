@@ -11,6 +11,7 @@ import {
   FileKey2,
   Gauge,
   KeyRound,
+  Landmark,
   PanelsTopLeft,
   ScrollText,
   Settings2,
@@ -23,6 +24,7 @@ import {
 import type { ReactNode } from 'react';
 
 import useIsActionsEnabled from '@/hooks/use-is-actions-enabled';
+import { usePlatformAccess } from '@/hooks/use-platform-api';
 
 type SidebarItem = {
   Icon: LucideIcon;
@@ -54,6 +56,7 @@ export const useSidebarMenuItems = (): {
   firstItem: Optional<SidebarItem>;
 } => {
   const isActionsEnabled = useIsActionsEnabled();
+  const { isPlatformAdministrator } = usePlatformAccess();
   const allSections: SidebarSection[] = [
     {
       title: 'overview',
@@ -150,6 +153,17 @@ export const useSidebarMenuItems = (): {
         {
           Icon: ScrollText,
           title: 'audit_logs',
+        },
+      ],
+    },
+    {
+      title: 'platform',
+      isHidden: !isPlatformAdministrator,
+      items: [
+        {
+          Icon: Landmark,
+          title: 'platform_settings',
+          path: 'platform-settings',
         },
       ],
     },

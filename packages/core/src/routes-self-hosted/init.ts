@@ -1,11 +1,12 @@
 /* eslint-disable max-lines -- The isolated local control-plane module intentionally mirrors the existing Cloud-compatible route surface. */
 import { timingSafeEqual } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 
 import { provisionTenant } from '@logto/cli/lib/commands/database/seed/tenant.js';
 import { replaceSendMessageHandlebars, sendMessageDataGuard } from '@logto/connector-kit';
-import { buildOrganizationUrn } from '@logto/core-kit';
 import {
   adminTenantId,
+  AdminTenantRole,
   ApplicationType,
   cloudApiIndicator,
   defaultTenantId,
@@ -18,12 +19,15 @@ import {
   mfaGuard,
   OneTimeTokenStatus,
   OrganizationInvitationStatus,
+  platformBrandingConfigGuard,
+  PlatformBrandingKey,
   ReservedPlanId,
   storageProviderDataGuard,
   StorageProviderKey,
   TenantRole,
   TenantScope,
   TenantTag,
+  uploadFileGuard,
 } from '@logto/schemas';
 import { Tenants } from '@logto/schemas/models';
 import { generateStandardId, generateStandardSecret } from '@logto/shared';
@@ -54,9 +58,13 @@ import type TenantContext from '#src/tenants/TenantContext.js';
 import { acquireTenant, invalidateTenant } from '#src/tenants/pool-access.js';
 import assertThat from '#src/utils/assert-that.js';
 import { convertToIdentifiers } from '#src/utils/sql.js';
+import { buildObjectStorage } from '#src/utils/storage/object-storage.js';
+
+import { getEffectivePlatformBranding } from '../routes/platform-branding.js';
 
 import { maskedSecret, preserveEmailSecret, preserveStorageSecret } from './config.js';
 import { selfHostedTenantOrganizationPath } from './route-path.js';
+import { verifySelfHostedTenantUser } from './tenant-user-auth.js';
 
 const { table: tenantsTable, fields: tenantFields } = convertToIdentifiers({
   table: Tenants.tableName,
@@ -149,24 +157,37 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
   const organizationRouter = new Router<unknown, WithAuthContext>();
   const anonymousRouter = new Router();
   cloudRouter.use(buildUserAuth(tenant, cloudApiIndicator));
-  organizationRouter.use(
-    selfHostedTenantOrganizationPath,
-    buildUserAuth(tenant, (tenantId) => buildOrganizationUrn(getTenantOrganizationId(tenantId)))
-  );
   const { organizations, users, oneTimeTokens } = tenant.queries;
   const { organizationInvitations } = tenant.libraries;
 
-  const assertDefaultTenantAdmin = async (userId: string) => {
+  const isPlatformAdministrator = async (userId: string) => {
+    const role = await tenant.queries.roles.findRoleByRoleName(
+      AdminTenantRole.PlatformAdministrator
+    );
+    return Boolean(role && (await tenant.queries.usersRoles.hasUserRole(userId, [role.id])));
+  };
+
+  const assertPlatformAdministrator = async (userId: string) => {
     assertThat(
-      await organizations.relations.usersRoles.hasUserOrganizationRole(userId, [
-        {
-          organizationId: getTenantOrganizationId(defaultTenantId),
-          organizationRoleId: getTenantRole(TenantRole.Admin).id,
-        },
-      ]),
+      await isPlatformAdministrator(userId),
       new RequestError({ code: 'auth.forbidden', status: 403 })
     );
   };
+
+  const tenantUserAuth: MiddlewareType<unknown, WithAuthContext> = async (ctx, next) => {
+    assertParityEnabled();
+    const tenantId = z.string().parse(ctx.params.tenantId);
+    const tokenInfo = await verifySelfHostedTenantUser(tenant, ctx.request, tenantId);
+
+    assertThat(
+      tokenInfo.sub !== tokenInfo.clientId,
+      new RequestError({ code: 'auth.forbidden', status: 403 })
+    );
+    ctx.auth = { type: 'user', id: tokenInfo.sub, scopes: new Set(tokenInfo.scopes) };
+    return next();
+  };
+
+  organizationRouter.use(selfHostedTenantOrganizationPath, tenantUserAuth);
 
   const assertUserTenantScope = async (userId: string, tenantId: string, scope: TenantScope) => {
     const scopes = await organizations.relations.usersRoles.getUserScopes(
@@ -180,13 +201,14 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
   };
 
   const getVisibleTenants = async (userId: string) => {
+    const isPlatformAdmin = await isPlatformAdministrator(userId);
     const userOrganizations = await organizations.relations.users.getOrganizationsByUserId(userId);
     const organizationIds = userOrganizations
       .map(({ id }) => id)
       .filter((id) => id.startsWith('t-'));
     const tenantIds = organizationIds.map((id) => getTenantIdFromOrganizationId(id));
 
-    if (tenantIds.length === 0) {
+    if (!isPlatformAdmin && tenantIds.length === 0) {
       return [];
     }
 
@@ -194,8 +216,12 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
     const rows = await pool.any<Record<string, unknown>>(sql`
       select ${sql.join(Object.values(tenantFields), sql`, `)}
       from ${tenantsTable}
-      where ${tenantFields.id} = any(${sql.array(tenantIds, 'varchar')})
-        and ${tenantFields.deletedAt} is null
+      where ${
+        isPlatformAdmin
+          ? sql`${tenantFields.deletedAt} is null`
+          : sql`${tenantFields.id} = any(${sql.array(tenantIds, 'varchar')})
+              and ${tenantFields.deletedAt} is null`
+      }
       order by ${tenantFields.createdAt} desc
     `);
 
@@ -214,6 +240,54 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
   const mailRequestGuard = z.object({
     data: sendMessageDataGuard,
   });
+
+  const assertPlatformOrTenantScope = async (
+    userId: string,
+    tenantId: string,
+    scope: TenantScope
+  ) => {
+    if (await isPlatformAdministrator(userId)) {
+      return;
+    }
+    await assertUserTenantScope(userId, tenantId, scope);
+  };
+
+  const platformUserResponse = ({
+    id,
+    username,
+    primaryEmail,
+    name,
+    avatar,
+  }: Awaited<ReturnType<typeof tenant.libraries.users.findUsersByRoleName>>[number]) => ({
+    id,
+    username,
+    primaryEmail,
+    name,
+    avatar,
+  });
+
+  const safePlatformSvgPattern =
+    /<(?:script|foreignobject)\b|\bon\w+\s*=|javascript:|data:text\/html/i;
+  const validatePlatformLogo = (data: Uint8Array, mimetype: string) => {
+    if (mimetype === 'image/png') {
+      assertThat(
+        Buffer.from(data.subarray(0, 8)).equals(Buffer.from('89504e470d0a1a0a', 'hex')),
+        'guard.invalid_input'
+      );
+      return 'png';
+    }
+    if (mimetype === 'image/jpeg') {
+      assertThat(data[0] === 0xff && data[1] === 0xd8, 'guard.invalid_input');
+      return 'jpg';
+    }
+    assertThat(mimetype === 'image/svg+xml', 'guard.mime_type_not_allowed');
+    const source = Buffer.from(data).toString('utf8');
+    assertThat(
+      /<svg\b/i.test(source) && !safePlatformSvgPattern.test(source),
+      'guard.invalid_input'
+    );
+    return 'svg';
+  };
 
   anonymousRouter.post(
     '/services/mails',
@@ -329,8 +403,126 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
     }
   );
 
+  cloudRouter.get('/instance/platform-access', async (ctx, next) => {
+    ctx.body = { isPlatformAdministrator: await isPlatformAdministrator(ctx.auth.id) };
+    return next();
+  });
+
+  cloudRouter.get('/instance/branding', async (ctx, next) => {
+    await assertPlatformAdministrator(ctx.auth.id);
+    ctx.body = getEffectivePlatformBranding();
+    return next();
+  });
+
+  cloudRouter.put(
+    '/instance/branding',
+    koaGuard({ body: platformBrandingConfigGuard }),
+    async (ctx, next) => {
+      await assertPlatformAdministrator(ctx.auth.id);
+      const { upsertSystemByKey } = createSystemsQuery(await EnvSet.sharedPool);
+      await upsertSystemByKey(PlatformBrandingKey.PlatformBranding, ctx.guard.body);
+      // eslint-disable-next-line @silverhand/fp/no-mutation -- Synchronize the process cache after an authorized platform update.
+      SystemContext.shared.platformBrandingConfig = ctx.guard.body;
+      ctx.body = getEffectivePlatformBranding();
+      return next();
+    }
+  );
+
+  cloudRouter.post(
+    '/instance/branding/logo/:variant',
+    koaGuard({
+      params: z.object({ variant: z.enum(['light', 'dark']) }),
+      files: z.object({ file: uploadFileGuard.array().min(1).max(1) }),
+    }),
+    async (ctx, next) => {
+      await assertPlatformAdministrator(ctx.auth.id);
+      const [file] = ctx.guard.files.file;
+      assertThat(file, 'guard.invalid_input');
+      assertThat(file.size <= 2 * 1024 * 1024, 'guard.file_size_exceeded');
+      const data = await readFile(file.filepath);
+      const extension = validatePlatformLogo(data, file.mimetype);
+      const assetName = `${ctx.guard.params.variant}-${generateStandardId(12)}.${extension}`;
+      const { storageProviderConfig } = SystemContext.shared;
+      assertThat(storageProviderConfig, 'storage.not_configured');
+      await buildObjectStorage(storageProviderConfig).uploadFile(
+        data,
+        `platform-branding/${assetName}`,
+        { contentType: file.mimetype }
+      );
+      const url = `/api/platform-assets/${assetName}`;
+      const current = getEffectivePlatformBranding();
+      const config = platformBrandingConfigGuard.parse({
+        ...current,
+        [ctx.guard.params.variant === 'light' ? 'logoUrl' : 'darkLogoUrl']: url,
+      });
+      const { upsertSystemByKey } = createSystemsQuery(await EnvSet.sharedPool);
+      await upsertSystemByKey(PlatformBrandingKey.PlatformBranding, config);
+      // eslint-disable-next-line @silverhand/fp/no-mutation -- Synchronize the process cache after an authorized logo upload.
+      SystemContext.shared.platformBrandingConfig = config;
+      ctx.body = { url, branding: config };
+      return next();
+    }
+  );
+
+  cloudRouter.get('/instance/platform-administrators', async (ctx, next) => {
+    await assertPlatformAdministrator(ctx.auth.id);
+    const administrators = await tenant.libraries.users.findUsersByRoleName(
+      AdminTenantRole.PlatformAdministrator
+    );
+    ctx.body = administrators.map((administrator) => platformUserResponse(administrator));
+    return next();
+  });
+
+  cloudRouter.post(
+    '/instance/platform-administrators',
+    koaGuard({ body: z.object({ identifier: z.string().trim().min(1).max(256) }) }),
+    async (ctx, next) => {
+      await assertPlatformAdministrator(ctx.auth.id);
+      const { identifier } = ctx.guard.body;
+      const [byId] = await users.findUsersByIds([identifier]);
+      const user =
+        byId ??
+        (identifier.includes('@')
+          ? await users.findUserByEmail(identifier)
+          : await users.findUserByUsername(identifier, false));
+      assertThat(user, new RequestError({ code: 'entity.not_found', id: identifier, status: 404 }));
+      const role = await tenant.queries.roles.findRoleByRoleName(
+        AdminTenantRole.PlatformAdministrator
+      );
+      assertThat(role, new RequestError({ code: 'entity.not_found', status: 404 }));
+      if (!(await tenant.queries.usersRoles.hasUserRole(user.id, [role.id]))) {
+        await tenant.queries.usersRoles.insertUsersRoles([
+          { id: generateStandardId(), userId: user.id, roleId: role.id },
+        ]);
+      }
+      ctx.status = 201;
+      ctx.body = platformUserResponse(user);
+      return next();
+    }
+  );
+
+  cloudRouter.delete(
+    '/instance/platform-administrators/:userId',
+    koaGuard({ params: z.object({ userId: z.string() }), status: [204, 400, 403] }),
+    async (ctx, next) => {
+      await assertPlatformAdministrator(ctx.auth.id);
+      const role = await tenant.queries.roles.findRoleByRoleName(
+        AdminTenantRole.PlatformAdministrator
+      );
+      assertThat(role, new RequestError({ code: 'entity.not_found', status: 404 }));
+      const { count } = await tenant.queries.usersRoles.countUsersRolesByRoleId(role.id);
+      assertThat(Number(count) > 1, new RequestError({ code: 'guard.invalid_input', status: 400 }));
+      await tenant.queries.usersRoles.deleteUsersRolesByUserIdAndRoleId(
+        ctx.guard.params.userId,
+        role.id
+      );
+      ctx.status = 204;
+      return next();
+    }
+  );
+
   cloudRouter.get('/instance/email', async (ctx, next) => {
-    await assertDefaultTenantAdmin(ctx.auth.id);
+    await assertPlatformAdministrator(ctx.auth.id);
     const config = SystemContext.shared.emailServiceProviderConfig;
     ctx.body =
       config?.provider === 'Smtp'
@@ -345,7 +537,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
     '/instance/email',
     koaGuard({ body: emailServiceConfigGuard }),
     async (ctx, next) => {
-      await assertDefaultTenantAdmin(ctx.auth.id);
+      await assertPlatformAdministrator(ctx.auth.id);
       const config = preserveEmailSecret(
         ctx.guard.body,
         SystemContext.shared.emailServiceProviderConfig
@@ -360,7 +552,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
   );
 
   cloudRouter.get('/instance/mfa', async (ctx, next) => {
-    await assertDefaultTenantAdmin(ctx.auth.id);
+    await assertPlatformAdministrator(ctx.auth.id);
     const [organization, signInExperience] = await Promise.all([
       organizations.findById(getTenantOrganizationId(defaultTenantId)),
       tenant.queries.signInExperiences.findDefaultSignInExperience(),
@@ -373,7 +565,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
     '/instance/mfa',
     koaGuard({ body: z.object({ isMfaRequired: z.boolean(), mfa: mfaGuard.optional() }) }),
     async (ctx, next) => {
-      await assertDefaultTenantAdmin(ctx.auth.id);
+      await assertPlatformAdministrator(ctx.auth.id);
       const { isMfaRequired, mfa } = ctx.guard.body;
       const [organization, signInExperience] = await Promise.all([
         organizations.updateById(getTenantOrganizationId(defaultTenantId), { isMfaRequired }),
@@ -387,7 +579,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
   );
 
   cloudRouter.get('/instance/storage', async (ctx, next) => {
-    await assertDefaultTenantAdmin(ctx.auth.id);
+    await assertPlatformAdministrator(ctx.auth.id);
     const mask = (config: typeof SystemContext.shared.experienceBlobsProviderConfig) =>
       config?.provider === 'S3Storage'
         ? { ...config, accessSecretKey: maskedSecret }
@@ -410,7 +602,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
       }),
     }),
     async (ctx, next) => {
-      await assertDefaultTenantAdmin(ctx.auth.id);
+      await assertPlatformAdministrator(ctx.auth.id);
       const experienceBlobsProvider = preserveStorageSecret(
         ctx.guard.body.experienceBlobsProvider,
         SystemContext.shared.experienceBlobsProviderConfig
@@ -434,7 +626,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
   );
 
   cloudRouter.get('/instance/gateway', async (ctx, next) => {
-    await assertDefaultTenantAdmin(ctx.auth.id);
+    await assertPlatformAdministrator(ctx.auth.id);
     ctx.body = {
       domain: EnvSet.values.protectedAppGatewayDomain,
       configured: Boolean(EnvSet.values.protectedAppGatewaySharedSecret),
@@ -446,7 +638,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
     '/instance/email/test',
     koaGuard({ body: z.object({ to: z.string().email() }) }),
     async (ctx, next) => {
-      await assertDefaultTenantAdmin(ctx.auth.id);
+      await assertPlatformAdministrator(ctx.auth.id);
       const config = SystemContext.shared.emailServiceProviderConfig;
       assertThat(config, new RequestError({ code: 'connector.not_found', status: 501 }));
       ctx.body = await sendSelfHostedEmail(config, {
@@ -460,7 +652,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
   );
 
   cloudRouter.get('/instance/email/outbox', async (ctx, next) => {
-    await assertDefaultTenantAdmin(ctx.auth.id);
+    await assertPlatformAdministrator(ctx.auth.id);
     const messages = await listOutboxMessages();
     ctx.body = messages.map(({ content: _content, ...message }) => message);
     return next();
@@ -470,7 +662,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
     '/instance/email/outbox/:messageId',
     koaGuard({ params: z.object({ messageId: z.string() }) }),
     async (ctx, next) => {
-      await assertDefaultTenantAdmin(ctx.auth.id);
+      await assertPlatformAdministrator(ctx.auth.id);
       ctx.body = await getOutboxMessage(ctx.guard.params.messageId);
       return next();
     }
@@ -480,7 +672,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
     '/instance/email/outbox/:messageId',
     koaGuard({ params: z.object({ messageId: z.string() }), status: [204] }),
     async (ctx, next) => {
-      await assertDefaultTenantAdmin(ctx.auth.id);
+      await assertPlatformAdministrator(ctx.auth.id);
       await deleteOutboxMessage(ctx.guard.params.messageId);
       ctx.status = 204;
       return next();
@@ -497,7 +689,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
     koaGuard({ params: z.object({ tenantId: z.string() }) }),
     async (ctx, next) => {
       const { tenantId } = ctx.guard.params;
-      await assertUserTenantScope(ctx.auth.id, tenantId, TenantScope.ReadData);
+      await assertPlatformOrTenantScope(ctx.auth.id, tenantId, TenantScope.ReadData);
       const targetTenant = await getTenantById(tenantId);
       assertThat(
         targetTenant,
@@ -527,7 +719,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
       status: [201, 400, 403, 409],
     }),
     async (ctx, next) => {
-      await assertDefaultTenantAdmin(ctx.auth.id);
+      await assertPlatformAdministrator(ctx.auth.id);
       const id = ctx.guard.body.id ?? `t-${generateStandardId(6)}`;
       assertThat(![defaultTenantId, adminTenantId].includes(id), 'guard.invalid_input');
       const pool = await EnvSet.sharedPool;
@@ -563,7 +755,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
     }),
     async (ctx, next) => {
       const { tenantId } = ctx.guard.params;
-      await assertUserTenantScope(ctx.auth.id, tenantId, TenantScope.ManageTenant);
+      await assertPlatformOrTenantScope(ctx.auth.id, tenantId, TenantScope.ManageTenant);
       const entries = Object.entries(ctx.guard.body);
       assertThat(entries.length > 0, 'guard.invalid_input');
       const pool = await EnvSet.sharedPool;
@@ -593,7 +785,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
     '/tenants/:tenantId',
     koaGuard({ params: z.object({ tenantId: z.string() }), status: [204, 400, 403] }),
     async (ctx, next) => {
-      await assertDefaultTenantAdmin(ctx.auth.id);
+      await assertPlatformAdministrator(ctx.auth.id);
       const { tenantId } = ctx.guard.params;
       assertThat(![defaultTenantId, adminTenantId].includes(tenantId), 'guard.invalid_input');
       const pool = await EnvSet.sharedPool;
@@ -612,7 +804,7 @@ export default function initSelfHostedControlApi(tenant: TenantContext): Koa {
     '/tenants/:tenantId/restore',
     koaGuard({ params: z.object({ tenantId: z.string() }) }),
     async (ctx, next) => {
-      await assertDefaultTenantAdmin(ctx.auth.id);
+      await assertPlatformAdministrator(ctx.auth.id);
       const { tenantId } = ctx.guard.params;
       const pool = await EnvSet.sharedPool;
       const restored = await pool.maybeOne<Record<string, unknown>>(sql`

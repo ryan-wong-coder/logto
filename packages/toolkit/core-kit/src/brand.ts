@@ -8,7 +8,15 @@ export type BrandProfile = {
   readonly darkPrimaryColor: string;
   readonly consoleTitle: string;
   readonly helpCenterPath: string;
+  readonly logoUrl?: string;
+  readonly darkLogoUrl?: string;
+  readonly hideOpenSourceNotice: boolean;
 };
+
+export type RuntimePlatformBranding = Pick<
+  BrandProfile,
+  'productName' | 'slogan' | 'logoUrl' | 'darkLogoUrl' | 'hideOpenSourceNotice'
+>;
 
 export const idenBrandProfile: BrandProfile = Object.freeze({
   id: 'iden',
@@ -18,6 +26,7 @@ export const idenBrandProfile: BrandProfile = Object.freeze({
   darkPrimaryColor: '#8B8CFF',
   consoleTitle: 'iden',
   helpCenterPath: '/help',
+  hideOpenSourceNotice: false,
 });
 
 export const logtoBrandProfile: BrandProfile = Object.freeze({
@@ -28,11 +37,64 @@ export const logtoBrandProfile: BrandProfile = Object.freeze({
   darkPrimaryColor: '#7958FF',
   consoleTitle: 'Logto Cloud',
   helpCenterPath: 'https://docs.logto.io',
+  hideOpenSourceNotice: false,
 });
 
 /** Resolve the user-facing product brand without changing Logto protocol or SDK identifiers. */
 export const resolveBrandProfile = (isCloud: boolean): BrandProfile =>
   isCloud ? logtoBrandProfile : idenBrandProfile;
+
+/** Mutate an app-local profile before rendering so existing imports observe runtime branding. */
+export const applyRuntimePlatformBranding = (
+  profile: BrandProfile,
+  branding: RuntimePlatformBranding
+) => {
+  for (const [key, value] of Object.entries({
+    ...branding,
+    consoleTitle: branding.productName,
+  })) {
+    Reflect.set(profile, key, value);
+  }
+};
+
+const isRuntimePlatformBranding = (value: unknown): value is RuntimePlatformBranding => {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  return (
+    typeof Reflect.get(value, 'productName') === 'string' &&
+    typeof Reflect.get(value, 'slogan') === 'string' &&
+    typeof Reflect.get(value, 'hideOpenSourceNotice') === 'boolean' &&
+    (Reflect.get(value, 'logoUrl') === undefined ||
+      typeof Reflect.get(value, 'logoUrl') === 'string') &&
+    (Reflect.get(value, 'darkLogoUrl') === undefined ||
+      typeof Reflect.get(value, 'darkLogoUrl') === 'string')
+  );
+};
+
+/** Load self-hosted instance branding. Cloud builds intentionally never call the local endpoint. */
+export const loadRuntimePlatformBranding = async (
+  profile: BrandProfile,
+  isCloud: boolean,
+  request: typeof fetch = fetch
+) => {
+  if (isCloud) {
+    return profile;
+  }
+  try {
+    const response = await request('/api/platform-branding', { credentials: 'same-origin' });
+    if (!response.ok) {
+      return profile;
+    }
+    const branding: unknown = await response.json();
+    if (isRuntimePlatformBranding(branding)) {
+      applyRuntimePlatformBranding(profile, branding);
+    }
+  } catch {
+    // A failed optional branding request must not prevent authentication surfaces from rendering.
+  }
+  return profile;
+};
 
 export const isCloudBrandEnvironment = (value: unknown): boolean =>
   value === true || value === 1 || (typeof value === 'string' && /^(1|true|yes)$/i.test(value));
@@ -137,8 +199,12 @@ const protectedProductTokens = [
 ];
 
 /** Rebrand prose while preserving protocol, package, component, and header identifiers. */
-export const rebrandProductText = (value: string, isCloud: boolean): string => {
-  if (isCloud || !/logto/i.test(value)) {
+export const rebrandProductText = (
+  value: string,
+  isCloud: boolean,
+  productName = idenBrandProfile.productName
+): string => {
+  if (isCloud || (!/logto/i.test(value) && !/\biden\b/i.test(value))) {
     return value;
   }
 
@@ -154,9 +220,9 @@ export const rebrandProductText = (value: string, isCloud: boolean): string => {
   );
 
   return withPlaceholders
-    .replaceAll('Logto Cloud', 'iden')
-    .replaceAll('Logto', 'iden')
-    .replaceAll('LOGTO', 'IDEN')
+    .replaceAll(/logto cloud/gi, () => productName)
+    .replaceAll(/logto/gi, () => productName)
+    .replaceAll(/\biden\b/gi, () => productName)
     .replaceAll(/__IDEN_COMPAT_([\da-f-]+)__/g, (_, encoded: string) =>
       String.fromCodePoint(...encoded.split('-').map((codePoint) => Number.parseInt(codePoint, 16)))
     );
@@ -167,23 +233,34 @@ const isUnknownRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === 'object' && !isUnknownArray(value);
 
 /** Apply self-hosted product wording to an i18n resource without mutating the source bundle. */
-export function rebrandProductPhrases<Value>(value: Value, isCloud: boolean): Value;
-export function rebrandProductPhrases(value: unknown, isCloud: boolean): unknown {
+export function rebrandProductPhrases<Value>(
+  value: Value,
+  isCloud: boolean,
+  productName?: string
+): Value;
+export function rebrandProductPhrases(
+  value: unknown,
+  isCloud: boolean,
+  productName = idenBrandProfile.productName
+): unknown {
   if (isCloud) {
     return value;
   }
 
   if (typeof value === 'string') {
-    return rebrandProductText(value, false);
+    return rebrandProductText(value, false, productName);
   }
 
   if (isUnknownArray(value)) {
-    return value.map((item) => rebrandProductPhrases(item, false));
+    return value.map((item) => rebrandProductPhrases(item, false, productName));
   }
 
   if (isUnknownRecord(value)) {
     return Object.fromEntries(
-      Object.entries(value).map(([key, item]) => [key, rebrandProductPhrases(item, false)])
+      Object.entries(value).map(([key, item]) => [
+        key,
+        rebrandProductPhrases(item, false, productName),
+      ])
     );
   }
 

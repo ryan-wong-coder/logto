@@ -1,0 +1,26 @@
+const platform = {
+  title: 'إعدادات المنصة',
+  subtitle: 'إدارة مسؤولي المنصة عبر المستأجرين والمظهر العام.',
+  branding_title: 'علامة المنصة',
+  branding_description: 'تُطبّق على وحدة التحكم والمصادقة ومركز الحساب والعروض ومركز المساعدة.',
+  product_name: 'اسم المنتج',
+  slogan: 'الشعار النصي',
+  light_logo: 'شعار النمط الفاتح',
+  dark_logo: 'شعار النمط الداكن',
+  upload_logo: 'رفع الشعار',
+  uploading: 'جارٍ الرفع…',
+  logo_uploaded: 'تم رفع الشعار',
+  hide_open_source_notice: 'إخفاء إشعار المصدر المفتوح',
+  hide_open_source_notice_description:
+    'يخفي روابط النسب الظاهرة مع الاحتفاظ بملفات الترخيص والمصدر.',
+  save: 'حفظ التغييرات',
+  saving: 'جارٍ الحفظ…',
+  saved: 'تم حفظ علامة المنصة',
+  administrators_title: 'مسؤولو المنصة',
+  administrators_description: 'يمكنهم إدارة جميع المستأجرين وإعدادات المثيل.',
+  administrator_identifier_placeholder: 'معرّف المستخدم أو الاسم أو البريد',
+  add_administrator: 'إضافة مسؤول',
+  administrator_added: 'تمت إضافة مسؤول المنصة',
+  remove_administrator: 'إزالة مسؤول المنصة',
+};
+export default Object.freeze(platform);

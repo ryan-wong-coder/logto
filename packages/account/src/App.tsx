@@ -52,7 +52,6 @@ import {
   organizationsRoute,
   organizationInvitationsRoute,
 } from './constants/routes';
-import initI18n from './i18n/init';
 import BackupCodeBinding from './pages/BackupCodeBinding';
 import BackupCodeView from './pages/BackupCodeView';
 import Email from './pages/Email';
@@ -79,7 +78,6 @@ import '@experience/shared/scss/normalized.scss';
 import './scss/normalized.scss';
 
 handleAccountCenterRoute();
-void initI18n();
 
 export const Main = () => {
   const params = new URLSearchParams(window.location.search);

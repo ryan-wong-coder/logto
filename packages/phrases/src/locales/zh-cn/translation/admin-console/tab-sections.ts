@@ -1,4 +1,5 @@
 const tab_sections = {
+  platform: '平台',
   overview: '概览',
   authentication: '身份验证',
   authorization: '授权',

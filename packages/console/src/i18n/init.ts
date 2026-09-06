@@ -6,6 +6,7 @@ import i18next from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 
+import { brandProfile } from '@/consts/brand';
 import { isCloud } from '@/consts/env';
 
 const initI18n = async (language?: LanguageTag) => {
@@ -34,13 +35,13 @@ const initI18n = async (language?: LanguageTag) => {
     i18next.addResourceBundle(
       language,
       'translation',
-      rebrandProductPhrases(values.translation, isCloud),
+      rebrandProductPhrases(values.translation, isCloud, brandProfile.productName),
       true
     );
     i18next.addResourceBundle(
       language,
       'errors',
-      rebrandProductPhrases(values.errors, isCloud),
+      rebrandProductPhrases(values.errors, isCloud, brandProfile.productName),
       true
     );
   }
@@ -50,7 +51,7 @@ const initI18n = async (language?: LanguageTag) => {
     i18next.addResourceBundle(
       language,
       'experience',
-      rebrandProductPhrases(values.translation, isCloud),
+      rebrandProductPhrases(values.translation, isCloud, brandProfile.productName),
       true
     );
   }

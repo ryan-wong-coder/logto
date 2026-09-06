@@ -1,4 +1,5 @@
 const tab_sections = {
+  platform: 'Platform',
   overview: 'Genel Bakış',
   authentication: 'Kimlik doğrulama',
   authorization: 'Yetkilendirme',

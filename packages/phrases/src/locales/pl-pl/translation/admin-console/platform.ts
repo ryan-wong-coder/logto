@@ -1,0 +1,26 @@
+const platform = {
+  title: 'Ustawienia platformy',
+  subtitle: 'Zarządzaj administratorami między dzierżawcami i globalnym wyglądem.',
+  branding_title: 'Marka platformy',
+  branding_description: 'Obejmuje konsolę, logowanie, centrum konta, wersje demo i centrum pomocy.',
+  product_name: 'Nazwa produktu',
+  slogan: 'Hasło',
+  light_logo: 'Logo jasnego motywu',
+  dark_logo: 'Logo ciemnego motywu',
+  upload_logo: 'Prześlij logo',
+  uploading: 'Przesyłanie…',
+  logo_uploaded: 'Logo przesłane',
+  hide_open_source_notice: 'Ukryj informację open source',
+  hide_open_source_notice_description:
+    'Ukrywa widoczne odnośniki atrybucji, zachowując pliki licencji i źródeł.',
+  save: 'Zapisz zmiany',
+  saving: 'Zapisywanie…',
+  saved: 'Marka platformy zapisana',
+  administrators_title: 'Administratorzy platformy',
+  administrators_description: 'Mogą zarządzać wszystkimi dzierżawcami i ustawieniami instancji.',
+  administrator_identifier_placeholder: 'ID, nazwa użytkownika lub e-mail',
+  add_administrator: 'Dodaj administratora',
+  administrator_added: 'Administrator dodany',
+  remove_administrator: 'Usuń administratora',
+};
+export default Object.freeze(platform);

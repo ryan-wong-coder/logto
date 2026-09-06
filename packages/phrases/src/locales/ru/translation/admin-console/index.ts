@@ -31,6 +31,7 @@ import organization_template from './organization-template.js';
 import organizations from './organizations.js';
 import oss_onboarding from './oss-onboarding.js';
 import permissions from './permissions.js';
+import platform from './platform.js';
 import profile from './profile.js';
 import protected_app from './protected-app.js';
 import role_details from './role-details.js';
@@ -85,6 +86,7 @@ const admin_console = {
   roles,
   role_details,
   permissions,
+  platform,
   cloud,
   profile,
   components,

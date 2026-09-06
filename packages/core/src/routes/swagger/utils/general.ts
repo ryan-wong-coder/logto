@@ -358,7 +358,19 @@ export const pruneUnavailableBaseOperations = (
     }
   }
 
-  return visibleBaseDocument;
+  const usedTags = new Set([
+    ...Object.values(visibleBaseDocument.paths).flatMap((pathItem) =>
+      Object.values(OpenAPIV3.HttpMethods).flatMap((method) => pathItem?.[method]?.tags ?? [])
+    ),
+    ...visibleSupplements.flatMap((supplement) =>
+      (supplement.tags ?? []).flatMap((tag) => (tag?.name ? [tag.name] : []))
+    ),
+  ]);
+
+  return {
+    ...visibleBaseDocument,
+    tags: visibleBaseDocument.tags?.filter(({ name }) => usedTags.has(name)),
+  };
 };
 
 const removeRequiredProperty = (

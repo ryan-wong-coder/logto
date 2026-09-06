@@ -1,4 +1,5 @@
 const tabs = {
+  platform_settings: 'Impostazioni piattaforma',
   actions: 'Actions',
   get_started: 'Iniziare',
   dashboard: 'Dashboard',

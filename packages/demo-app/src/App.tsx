@@ -12,12 +12,9 @@ import Callback from './Callback';
 import DevPanel from './DevPanel';
 import congratsDark from './assets/congrats-dark.svg';
 import congrats from './assets/congrats.svg';
-import initI18n from './i18n/init';
 import useInterfaceTranslation from './i18n/use-interface-translation';
 import { isCloudBuild, productBrand } from './product-brand';
 import { getLocalData, setLocalData } from './utils';
-
-void initI18n();
 
 const Main = () => {
   const { t: tUi } = useInterfaceTranslation();
@@ -156,7 +153,21 @@ const Main = () => {
       <div className={[styles.card, styles.congrats].join(' ')}>
         {!isCloudBuild && (
           <div className={styles.brand}>
-            <span aria-hidden className={styles.brandMark} />
+            {(productBrand.logoUrl ?? productBrand.darkLogoUrl) ? (
+              <picture>
+                <source
+                  media="(prefers-color-scheme: dark)"
+                  srcSet={productBrand.darkLogoUrl ?? productBrand.logoUrl}
+                />
+                <img
+                  alt=""
+                  className={styles.brandLogo}
+                  src={productBrand.logoUrl ?? productBrand.darkLogoUrl}
+                />
+              </picture>
+            ) : (
+              <span aria-hidden className={styles.brandMark} />
+            )}
             <span>{productBrand.productName}</span>
           </div>
         )}

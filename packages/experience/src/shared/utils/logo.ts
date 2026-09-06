@@ -3,19 +3,24 @@ import type { Branding } from '@logto/schemas';
 import { Theme } from '@logto/schemas';
 import type { Nullable } from '@silverhand/essentials';
 
-import { isCloudBuild } from '@/shared/utils/product-brand';
+import { isCloudBuild, productBrand } from '@/shared/utils/product-brand';
 
 const legacySelfHostedLogoUrls = new Set([
   'https://logto.io/logo.svg',
   'https://logto.io/logo-dark.svg',
 ]);
 
-export const resolveSelfHostedBrandingLogoUrl = (logoUrl: Nullable<string> | undefined) => {
-  if (!logoUrl || isCloudBuild || !legacySelfHostedLogoUrls.has(logoUrl)) {
+export const resolveSelfHostedBrandingLogoUrl = (
+  logoUrl: Nullable<string> | undefined,
+  theme = Theme.Light
+) => {
+  if (isCloudBuild || (logoUrl && !legacySelfHostedLogoUrls.has(logoUrl))) {
     return logoUrl;
   }
 
-  return idenAppIcon;
+  return theme === Theme.Dark
+    ? (productBrand.darkLogoUrl ?? productBrand.logoUrl ?? idenAppIcon)
+    : (productBrand.logoUrl ?? productBrand.darkLogoUrl ?? idenAppIcon);
 };
 
 export type GetLogoUrl = {
@@ -42,16 +47,16 @@ export const getBrandingLogoUrl = ({ theme, branding, isDarkModeEnabled }: GetBr
   const { logoUrl, darkLogoUrl } = branding;
 
   if (!isDarkModeEnabled) {
-    return resolveSelfHostedBrandingLogoUrl(logoUrl);
+    return resolveSelfHostedBrandingLogoUrl(logoUrl, theme);
   }
 
   if (!logoUrl && !darkLogoUrl) {
-    return null;
+    return resolveSelfHostedBrandingLogoUrl(null, theme);
   }
 
   if (logoUrl && darkLogoUrl) {
-    return resolveSelfHostedBrandingLogoUrl(getLogoUrl({ theme, logoUrl, darkLogoUrl }));
+    return resolveSelfHostedBrandingLogoUrl(getLogoUrl({ theme, logoUrl, darkLogoUrl }), theme);
   }
 
-  return resolveSelfHostedBrandingLogoUrl(logoUrl ?? darkLogoUrl);
+  return resolveSelfHostedBrandingLogoUrl(logoUrl ?? darkLogoUrl, theme);
 };

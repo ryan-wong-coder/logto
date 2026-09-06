@@ -19,8 +19,8 @@ import { useCallback, useContext, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 
-import { requestTimeout, contactEmailLink } from '@/consts';
-import { isCloud, isTenantManagementEnabled } from '@/consts/env';
+import { requestTimeout, contactEmailLink, cloudApi } from '@/consts';
+import { isCloud, isSelfHostedParityEnabled, isTenantManagementEnabled } from '@/consts/env';
 import { AppDataContext } from '@/contexts/AppDataProvider';
 import { SubscriptionDataContext } from '@/contexts/SubscriptionDataProvider';
 import { TenantsContext } from '@/contexts/TenantsProvider';
@@ -225,7 +225,9 @@ const useApi = (props: Omit<StaticApiProps, 'prefixUrl' | 'resourceIndicator'> =
       isTenantManagementEnabled
         ? {
             prefixUrl: appendPath(new URL(window.location.origin), 'm', currentTenantId),
-            resourceIndicator: buildOrganizationUrn(getTenantOrganizationId(currentTenantId)),
+            resourceIndicator: isSelfHostedParityEnabled
+              ? cloudApi.indicator
+              : buildOrganizationUrn(getTenantOrganizationId(currentTenantId)),
           }
         : {
             prefixUrl: tenantEndpoint,

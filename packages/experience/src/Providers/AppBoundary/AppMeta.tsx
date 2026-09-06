@@ -9,7 +9,7 @@ import { Helmet } from 'react-helmet';
 import PageContext from '@/Providers/PageContextProvider/PageContext';
 import defaultAppleTouchLogo from '@/shared/assets/apple-touch-icon.png';
 import defaultFavicon from '@/shared/assets/favicon.png';
-import { isCloudBuild } from '@/shared/utils/product-brand';
+import { isCloudBuild, productBrand } from '@/shared/utils/product-brand';
 import { type SignInExperienceResponse } from '@/types';
 
 import styles from './index.module.scss';
@@ -37,14 +37,21 @@ const AppMeta = () => {
   const { experienceSettings, theme, platform, isPreview } = useContext(PageContext);
   const favicon =
     experienceSettings?.branding[themeToFavicon[theme]] ?? experienceSettings?.branding.favicon;
+  const platformFavicon =
+    theme === Theme.Dark
+      ? (productBrand.darkLogoUrl ?? productBrand.logoUrl)
+      : (productBrand.logoUrl ?? productBrand.darkLogoUrl);
 
   return (
     <Helmet>
       <html lang={i18next.language} dir={i18next.dir()} data-theme={theme} />
-      <link rel="shortcut icon" href={favicon ?? (isCloudBuild ? defaultFavicon : idenAppIcon)} />
+      <link
+        rel="shortcut icon"
+        href={favicon ?? (isCloudBuild ? defaultFavicon : (platformFavicon ?? idenAppIcon))}
+      />
       <link
         rel="apple-touch-icon"
-        href={favicon ?? (isCloudBuild ? defaultAppleTouchLogo : idenAppIcon)}
+        href={favicon ?? (isCloudBuild ? defaultAppleTouchLogo : (platformFavicon ?? idenAppIcon))}
         sizes="180x180"
       />
       {experienceSettings?.customCss && <style>{experienceSettings.customCss}</style>}

@@ -314,7 +314,10 @@ describe('submit action', () => {
         id: 'uid',
         ...upsertProfile,
       },
-      { isInteractive: true, roleNames: ['user', 'default:admin'] }
+      {
+        isInteractive: true,
+        roleNames: ['user', 'platformAdministrator', 'default:admin'],
+      }
     );
     expect(assignInteractionResults).toBeCalledWith(adminConsoleCtx, tenant.provider, {
       login: { accountId: 'uid' },

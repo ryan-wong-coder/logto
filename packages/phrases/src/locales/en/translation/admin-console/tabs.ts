@@ -1,4 +1,5 @@
 const tabs = {
+  platform_settings: 'Platform settings',
   get_started: 'Get started',
   dashboard: 'Dashboard',
   applications: 'Applications',

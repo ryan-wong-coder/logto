@@ -1,0 +1,202 @@
+@use '@/scss/underscore' as _;
+
+.page {
+  width: min(1040px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: _.unit(6);
+  padding-bottom: _.unit(8);
+}
+
+.card {
+  padding: _.unit(6);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-layer-1);
+}
+
+.sectionTitle {
+  display: flex;
+  gap: _.unit(3);
+  align-items: flex-start;
+
+  > svg {
+    width: 24px;
+    height: 24px;
+    color: var(--color-primary);
+  }
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    font: var(--font-title-2);
+  }
+
+  p {
+    margin-top: _.unit(1);
+    color: var(--color-text-secondary);
+  }
+}
+
+.form {
+  display: grid;
+  gap: _.unit(5);
+  margin-top: _.unit(6);
+
+  > label {
+    display: grid;
+    gap: _.unit(2);
+
+    > span {
+      font: var(--font-label-2);
+    }
+  }
+}
+
+.logoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: _.unit(4);
+}
+
+.logoCard {
+  display: grid;
+  gap: _.unit(3);
+  padding: _.unit(4);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  &[data-theme='dark'] {
+    background: #17181c;
+    color: #f4f4f6;
+  }
+}
+
+.logoPreview {
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  gap: _.unit(3);
+
+  img,
+  svg {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+  }
+
+  svg {
+    color: var(--color-primary);
+  }
+}
+
+.uploadButton,
+.secondaryButton,
+.primaryButton,
+.iconButton {
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font: var(--font-label-2);
+}
+
+.uploadButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: _.unit(2);
+  min-height: 40px;
+  padding: 0 _.unit(4);
+  background: var(--color-layer-2);
+  color: var(--color-text);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  input {
+    display: none;
+  }
+}
+
+.noticeSetting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: _.unit(4);
+  padding: _.unit(4) 0;
+  border-block: 1px solid var(--color-border);
+
+  p {
+    margin: _.unit(1) 0 0;
+    color: var(--color-text-secondary);
+  }
+}
+
+.primaryButton {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 _.unit(5);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.addAdministrator {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: _.unit(3);
+  margin-top: _.unit(6);
+}
+
+.administratorList {
+  margin-top: _.unit(4);
+  border-top: 1px solid var(--color-border);
+}
+
+.administratorRow {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: _.unit(4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.administratorMeta {
+  display: grid;
+  gap: _.unit(1);
+}
+
+.administratorEmail {
+  color: var(--color-text-secondary);
+}
+
+.iconButton {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--color-error);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 720px) {
+  .card {
+    padding: _.unit(4);
+  }
+
+  .logoGrid,
+  .addAdministrator {
+    grid-template-columns: 1fr;
+  }
+}

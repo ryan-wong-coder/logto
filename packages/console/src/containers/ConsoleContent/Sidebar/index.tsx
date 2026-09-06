@@ -47,9 +47,11 @@ function Sidebar() {
           {isIdenBrand && (
             <footer className={styles.footer}>
               <div className={styles.slogan}>{brandProfile.slogan}</div>
-              <a className={styles.about} href={`${documentationSiteUrl}/about`}>
-                {tUi('about')}
-              </a>
+              {!brandProfile.hideOpenSourceNotice && (
+                <a className={styles.about} href={`${documentationSiteUrl}/about`}>
+                  {tUi('about')}
+                </a>
+              )}
             </footer>
           )}
         </div>

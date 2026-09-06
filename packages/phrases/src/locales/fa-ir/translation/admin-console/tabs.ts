@@ -1,4 +1,5 @@
 const tabs = {
+  platform_settings: 'تنظیمات پلتفرم',
   actions: 'Actions',
   get_started: 'شروع کنید',
   dashboard: 'داشبورد',

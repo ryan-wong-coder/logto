@@ -82,6 +82,7 @@ const getInitialUserRoles = (
 ) =>
   conditionalArray<string>(
     isInAdminTenant && AdminTenantRole.User,
+    isCreatingFirstAdminUser && !isCloud && AdminTenantRole.PlatformAdministrator,
     isCreatingFirstAdminUser && !isCloud && defaultManagementApiAdminName // OSS uses the legacy Management API user role
   );
 

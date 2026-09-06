@@ -1,7 +1,7 @@
 import defaultAppleTouchLogo from '@experience/shared/assets/apple-touch-icon.png';
 import defaultFavicon from '@experience/shared/assets/favicon.png';
 import { type SignInExperienceResponse } from '@experience/shared/types';
-import { isCloudBuild } from '@experience/shared/utils/product-brand';
+import { isCloudBuild, productBrand } from '@experience/shared/utils/product-brand';
 import idenAppIcon from '@logto/core-kit/assets/iden-app-icon.svg';
 import { Theme } from '@logto/schemas';
 import { conditionalString } from '@silverhand/essentials';
@@ -37,14 +37,21 @@ const AppMeta = () => {
   const { experienceSettings, accountCenterSettings, theme, platform } = useContext(PageContext);
   const favicon =
     experienceSettings?.branding[themeToFavicon[theme]] ?? experienceSettings?.branding.favicon;
+  const platformFavicon =
+    theme === Theme.Dark
+      ? (productBrand.darkLogoUrl ?? productBrand.logoUrl)
+      : (productBrand.logoUrl ?? productBrand.darkLogoUrl);
 
   return (
     <Helmet>
       <html lang={i18next.language} dir={i18next.dir()} data-theme={theme} />
-      <link rel="shortcut icon" href={favicon ?? (isCloudBuild ? defaultFavicon : idenAppIcon)} />
+      <link
+        rel="shortcut icon"
+        href={favicon ?? (isCloudBuild ? defaultFavicon : (platformFavicon ?? idenAppIcon))}
+      />
       <link
         rel="apple-touch-icon"
-        href={favicon ?? (isCloudBuild ? defaultAppleTouchLogo : idenAppIcon)}
+        href={favicon ?? (isCloudBuild ? defaultAppleTouchLogo : (platformFavicon ?? idenAppIcon))}
         sizes="180x180"
       />
       {accountCenterSettings?.customCss && <style>{accountCenterSettings.customCss}</style>}

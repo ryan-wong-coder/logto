@@ -97,3 +97,13 @@ export const createTenantApplicationRole = (): Readonly<Role> => ({
   type: RoleType.MachineToMachine,
   isDefault: false,
 });
+
+/** The global administrator role for a self-hosted multi-tenant instance. */
+export const createPlatformAdministratorRole = (): Readonly<Role> => ({
+  tenantId: adminTenantId,
+  id: generateStandardId(),
+  name: AdminTenantRole.PlatformAdministrator,
+  description: 'Manage self-hosted platform settings, branding, administrators, and tenants.',
+  type: RoleType.User,
+  isDefault: false,
+});

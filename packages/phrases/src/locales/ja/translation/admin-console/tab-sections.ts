@@ -1,4 +1,5 @@
 const tab_sections = {
+  platform: 'プラットフォーム',
   overview: '概要',
   authentication: '認証',
   authorization: '認可',

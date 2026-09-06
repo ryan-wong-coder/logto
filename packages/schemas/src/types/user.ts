@@ -75,6 +75,8 @@ export enum InternalRole {
 export enum AdminTenantRole {
   /** Common user role in admin tenant. */
   User = 'user',
+  /** Self-hosted platform administrator with cross-tenant and instance-level access. */
+  PlatformAdministrator = 'platformAdministrator',
   /** The role for machine to machine applications that represent a user tenant and send requests to Logto Cloud. */
   TenantApplication = 'tenantApplication',
 }

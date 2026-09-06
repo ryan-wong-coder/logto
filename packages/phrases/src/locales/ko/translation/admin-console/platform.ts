@@ -1,0 +1,26 @@
+const platform = {
+  title: '플랫폼 설정',
+  subtitle: '테넌트 간 관리자와 플랫폼 전체 디자인을 관리합니다.',
+  branding_title: '플랫폼 브랜딩',
+  branding_description: '콘솔, 인증, 계정 센터, 데모 및 도움말 센터에 적용됩니다.',
+  product_name: '제품 이름',
+  slogan: '슬로건',
+  light_logo: '라이트 테마 로고',
+  dark_logo: '다크 테마 로고',
+  upload_logo: '로고 업로드',
+  uploading: '업로드 중…',
+  logo_uploaded: '로고 업로드됨',
+  hide_open_source_notice: '오픈 소스 고지 숨기기',
+  hide_open_source_notice_description:
+    '화면의 저작자 링크를 숨기되 필수 라이선스와 소스 파일은 유지합니다.',
+  save: '변경 사항 저장',
+  saving: '저장 중…',
+  saved: '플랫폼 브랜드 저장됨',
+  administrators_title: '플랫폼 관리자',
+  administrators_description: '모든 테넌트와 인스턴스 수준 설정을 관리할 수 있습니다.',
+  administrator_identifier_placeholder: '사용자 ID, 사용자 이름 또는 이메일',
+  add_administrator: '관리자 추가',
+  administrator_added: '플랫폼 관리자 추가됨',
+  remove_administrator: '플랫폼 관리자 제거',
+};
+export default Object.freeze(platform);

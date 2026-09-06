@@ -36,7 +36,8 @@ import { cloudApi, getManagementApi, meApi } from '@/consts/resources';
 import { ConsoleRoutes } from '@/containers/ConsoleRoutes';
 
 import { GlobalScripts } from './components/Conversion';
-import { adminTenantEndpoint, mainTitle } from './consts';
+import { adminTenantEndpoint } from './consts';
+import { brandProfile } from './consts/brand';
 import ErrorBoundary from './containers/ErrorBoundary';
 import LogtoErrorBoundary from './containers/LogtoErrorBoundary';
 import AppConfirmModalProvider from './contexts/AppConfirmModalProvider';
@@ -45,9 +46,6 @@ import { AppThemeProvider } from './contexts/AppThemeProvider';
 import TenantsProvider, { TenantsContext } from './contexts/TenantsProvider';
 import Toast from './ds-components/Toast';
 import useCurrentUser from './hooks/use-current-user';
-import initI18n from './i18n/init';
-
-void initI18n();
 
 /**
  * The main entry of the project. It provides two fundamental context providers:
@@ -124,7 +122,10 @@ function Providers() {
       }}
     >
       <AppThemeProvider>
-        <Helmet titleTemplate={`%s - ${mainTitle}`} defaultTitle={mainTitle} />
+        <Helmet
+          titleTemplate={`%s - ${brandProfile.consoleTitle}`}
+          defaultTitle={brandProfile.consoleTitle}
+        />
         <Toast />
         <AppConfirmModalProvider>
           <ErrorBoundary>
