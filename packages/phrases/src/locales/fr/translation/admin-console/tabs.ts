@@ -1,4 +1,5 @@
 const tabs = {
+  platform_settings: 'Paramètres de la plateforme',
   actions: 'Actions',
   get_started: 'Commencez',
   dashboard: 'Tableau de bord',

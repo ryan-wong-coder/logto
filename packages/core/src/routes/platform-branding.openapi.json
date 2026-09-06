@@ -1,0 +1,235 @@
+{
+  "x-logto-self-hosted-only": true,
+  "paths": {
+    "/api/platform-branding": {
+      "get": {
+        "summary": "Get effective platform branding",
+        "description": "Returns the effective public brand name, slogan, light and dark logos, and attribution visibility for self-hosted user interfaces.",
+        "tags": ["Self-hosted parity"],
+        "responses": {
+          "200": {
+            "description": "The effective platform branding.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PlatformBranding" }
+              }
+            }
+          },
+          "404": { "description": "Self-hosted parity is not enabled." }
+        }
+      }
+    },
+    "/api/platform-assets/{assetName}": {
+      "get": {
+        "summary": "Get a platform brand asset",
+        "description": "Returns an uploaded light or dark platform logo.",
+        "tags": ["Self-hosted parity"],
+        "parameters": [
+          {
+            "name": "assetName",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The uploaded image.",
+            "content": {
+              "image/png": {},
+              "image/jpeg": {},
+              "image/svg+xml": {}
+            }
+          },
+          "404": { "description": "The asset does not exist." }
+        }
+      }
+    },
+    "/api/instance/platform-access": {
+      "get": {
+        "summary": "Get platform administrator access",
+        "tags": ["Self-hosted parity"],
+        "responses": {
+          "200": {
+            "description": "Whether the current user is a platform administrator.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["isPlatformAdministrator"],
+                  "properties": { "isPlatformAdministrator": { "type": "boolean" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/instance/branding": {
+      "get": {
+        "summary": "Get platform branding settings",
+        "tags": ["Self-hosted parity"],
+        "responses": {
+          "200": {
+            "description": "The effective platform branding.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PlatformBranding" }
+              }
+            }
+          },
+          "403": { "description": "Platform administrator access is required." }
+        }
+      },
+      "put": {
+        "summary": "Update platform branding settings",
+        "tags": ["Self-hosted parity"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PlatformBranding" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated platform branding.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PlatformBranding" }
+              }
+            }
+          },
+          "403": { "description": "Platform administrator access is required." }
+        }
+      }
+    },
+    "/api/instance/branding/logo/{variant}": {
+      "post": {
+        "summary": "Upload a light or dark platform logo",
+        "description": "Accepts one PNG, JPEG, or safe SVG image up to 2 MiB.",
+        "tags": ["Self-hosted parity"],
+        "parameters": [
+          {
+            "name": "variant",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "enum": ["light", "dark"] }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": { "file": { "type": "string", "format": "binary" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "The uploaded asset URL and updated branding." },
+          "400": { "description": "The uploaded image is invalid." },
+          "403": { "description": "Platform administrator access is required." }
+        }
+      }
+    },
+    "/api/instance/platform-administrators": {
+      "get": {
+        "summary": "List platform administrators",
+        "tags": ["Self-hosted parity"],
+        "responses": {
+          "200": {
+            "description": "Platform administrators.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/PlatformAdministrator" }
+                }
+              }
+            }
+          },
+          "403": { "description": "Platform administrator access is required." }
+        }
+      },
+      "post": {
+        "summary": "Add a platform administrator",
+        "description": "Finds an admin-tenant user by ID, username, or email and grants the global role.",
+        "tags": ["Self-hosted parity"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["identifier"],
+                "properties": { "identifier": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The added platform administrator.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PlatformAdministrator" }
+              }
+            }
+          },
+          "403": { "description": "Platform administrator access is required." },
+          "404": { "description": "The user does not exist." }
+        }
+      }
+    },
+    "/api/instance/platform-administrators/{userId}": {
+      "delete": {
+        "summary": "Remove a platform administrator",
+        "tags": ["Self-hosted parity"],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "The platform administrator role was removed." },
+          "400": { "description": "The last platform administrator cannot be removed." },
+          "403": { "description": "Platform administrator access is required." }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PlatformBranding": {
+        "type": "object",
+        "required": ["productName", "slogan", "hideOpenSourceNotice"],
+        "properties": {
+          "productName": { "type": "string", "maxLength": 64 },
+          "slogan": { "type": "string", "maxLength": 160 },
+          "logoUrl": { "type": "string" },
+          "darkLogoUrl": { "type": "string" },
+          "hideOpenSourceNotice": { "type": "boolean" }
+        }
+      },
+      "PlatformAdministrator": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "string" },
+          "username": { "type": "string", "nullable": true },
+          "primaryEmail": { "type": "string", "nullable": true },
+          "name": { "type": "string", "nullable": true },
+          "avatar": { "type": "string", "nullable": true }
+        }
+      }
+    }
+  }
+}

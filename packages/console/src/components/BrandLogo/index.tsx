@@ -1,7 +1,10 @@
+import { Theme } from '@logto/schemas';
 import classNames from 'classnames';
+import { useContext } from 'react';
 
 import CloudLogo from '@/assets/images/cloud-logo.svg?react';
 import { brandProfile, isCloudBrand } from '@/consts/brand';
+import { AppThemeContext } from '@/contexts/AppThemeProvider';
 
 import styles from './index.module.scss';
 
@@ -11,6 +14,7 @@ type Props = {
 };
 
 function BrandLogo({ className, onClick }: Props) {
+  const { theme } = useContext(AppThemeContext);
   if (isCloudBrand) {
     return (
       <CloudLogo
@@ -22,6 +26,11 @@ function BrandLogo({ className, onClick }: Props) {
     );
   }
 
+  const logoUrl =
+    theme === Theme.Dark
+      ? (brandProfile.darkLogoUrl ?? brandProfile.logoUrl)
+      : (brandProfile.logoUrl ?? brandProfile.darkLogoUrl);
+
   return (
     <button
       aria-label={brandProfile.productName}
@@ -29,7 +38,11 @@ function BrandLogo({ className, onClick }: Props) {
       type="button"
       onClick={onClick}
     >
-      <span aria-hidden className={styles.mark} />
+      {logoUrl ? (
+        <img alt="" className={styles.customMark} src={logoUrl} />
+      ) : (
+        <span aria-hidden className={styles.mark} />
+      )}
       <span className={styles.name}>{brandProfile.productName}</span>
     </button>
   );

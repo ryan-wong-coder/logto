@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   idenBrandProfile,
   isCloudBrandEnvironment,
+  loadRuntimePlatformBranding,
   logtoBrandProfile,
   rebrandProductPhrases,
   rebrandProductText,
@@ -27,6 +28,56 @@ describe('resolveBrandProfile', () => {
   });
 });
 
+describe('loadRuntimePlatformBranding', () => {
+  it('applies validated self-hosted branding to an app-local profile', async () => {
+    const profile = { ...idenBrandProfile };
+    const request = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            productName: 'Acme ID',
+            slogan: 'One identity.',
+            logoUrl: '/api/platform-assets/light-logo.svg',
+            darkLogoUrl: '/api/platform-assets/dark-logo.svg',
+            hideOpenSourceNotice: true,
+          }),
+          { status: 200 }
+        )
+    );
+
+    await loadRuntimePlatformBranding(profile, false, request);
+
+    expect(request).toHaveBeenCalledWith('/api/platform-branding', {
+      credentials: 'same-origin',
+    });
+    expect(profile).toMatchObject({
+      productName: 'Acme ID',
+      consoleTitle: 'Acme ID',
+      darkLogoUrl: '/api/platform-assets/dark-logo.svg',
+      hideOpenSourceNotice: true,
+    });
+  });
+
+  it('does not request local branding for Cloud builds', async () => {
+    const profile = { ...logtoBrandProfile };
+    const request = vi.fn();
+
+    await loadRuntimePlatformBranding(profile, true, request);
+
+    expect(request).not.toHaveBeenCalled();
+    expect(profile).toEqual(logtoBrandProfile);
+  });
+
+  it('keeps defaults when the branding response is invalid', async () => {
+    const profile = { ...idenBrandProfile };
+    const request = vi.fn(async () => new Response(JSON.stringify({ productName: 'Incomplete' })));
+
+    await loadRuntimePlatformBranding(profile, false, request);
+
+    expect(profile).toEqual(idenBrandProfile);
+  });
+});
+
 describe('rebrandProductText', () => {
   it('rebrands self-hosted product prose', () => {
     expect(rebrandProductText('Welcome to Logto Cloud. Powered by Logto.', false)).toBe(
@@ -47,6 +98,12 @@ describe('rebrandProductText', () => {
     expect(rebrandProductPhrases({ title: 'Logto Cloud' }, true)).toEqual({
       title: 'Logto Cloud',
     });
+  });
+
+  it('uses the runtime platform name for self-hosted prose', () => {
+    expect(rebrandProductText('Welcome to Logto. Powered by iden.', false, 'Acme ID')).toBe(
+      'Welcome to Acme ID. Powered by Acme ID.'
+    );
   });
 });
 

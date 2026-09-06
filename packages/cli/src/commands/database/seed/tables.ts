@@ -15,6 +15,7 @@ import {
   createDefaultAdminConsoleApplication,
   createCloudApi,
   createTenantApplicationRole,
+  createPlatformAdministratorRole,
   CloudScope,
   Roles,
   type Role,
@@ -180,6 +181,8 @@ export const seedTables = async (
   // Create tenant application role
   const applicationRole = createTenantApplicationRole();
   await connection.query(insertInto(applicationRole, Roles.table));
+  const platformAdministratorRole = createPlatformAdministratorRole();
+  await connection.query(insertInto(platformAdministratorRole, Roles.table));
   await assignScopesToRole(
     connection,
     adminTenantId,

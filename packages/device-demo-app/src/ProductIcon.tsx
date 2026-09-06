@@ -7,12 +7,20 @@ type Props = {
   readonly className?: string;
 };
 
-const ProductIcon = ({ className }: Props) => (
-  <img
-    className={className}
-    src={isCloudBuild ? logtoIcon : idenAppIcon}
-    alt={isCloudBuild ? 'Logto' : productBrand.productName}
-  />
-);
+const ProductIcon = ({ className }: Props) => {
+  const lightLogo = productBrand.logoUrl ?? productBrand.darkLogoUrl ?? idenAppIcon;
+  const darkLogo = productBrand.darkLogoUrl ?? productBrand.logoUrl ?? idenAppIcon;
+
+  return (
+    <picture>
+      {!isCloudBuild && <source media="(prefers-color-scheme: dark)" srcSet={darkLogo} />}
+      <img
+        className={className}
+        src={isCloudBuild ? logtoIcon : lightLogo}
+        alt={isCloudBuild ? 'Logto' : productBrand.productName}
+      />
+    </picture>
+  );
+};
 
 export default ProductIcon;

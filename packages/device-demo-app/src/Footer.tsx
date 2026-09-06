@@ -34,11 +34,21 @@ export const useIsDarkMode = () => {
 const Footer = ({ isDarkMode }: { readonly isDarkMode: boolean }) => {
   const { t: tUi, i18n } = useInterfaceTranslation();
   if (!isCloudBuild) {
+    const logoUrl = isDarkMode
+      ? (productBrand.darkLogoUrl ?? productBrand.logoUrl)
+      : (productBrand.logoUrl ?? productBrand.darkLogoUrl);
     return (
       <div className={styles.footerContainer}>
-        <a className={styles.idenFooter} href={`/help/${i18n.resolvedLanguage}/about`}>
+        <a
+          className={styles.idenFooter}
+          href={`/help/${i18n.resolvedLanguage}/${productBrand.hideOpenSourceNotice ? '' : 'about'}`}
+        >
           <span>{tUi('powered_by')}</span>
-          <span aria-hidden className={styles.idenMark} />
+          {logoUrl ? (
+            <img alt="" className={styles.customBrandMark} src={logoUrl} />
+          ) : (
+            <span aria-hidden className={styles.idenMark} />
+          )}
           <strong>{productBrand.productName}</strong>
         </a>
       </div>

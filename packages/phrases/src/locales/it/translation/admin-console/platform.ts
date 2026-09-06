@@ -1,0 +1,26 @@
+const platform = {
+  title: 'Impostazioni piattaforma',
+  subtitle: 'Gestisci amministratori tra tenant e aspetto globale.',
+  branding_title: 'Marchio della piattaforma',
+  branding_description: 'Applicato a console, autenticazione, centro account, demo e guida.',
+  product_name: 'Nome prodotto',
+  slogan: 'Slogan',
+  light_logo: 'Logo tema chiaro',
+  dark_logo: 'Logo tema scuro',
+  upload_logo: 'Carica logo',
+  uploading: 'Caricamento…',
+  logo_uploaded: 'Logo caricato',
+  hide_open_source_notice: 'Nascondi avviso open source',
+  hide_open_source_notice_description:
+    'Nasconde i link di attribuzione visibili mantenendo i file di licenza e sorgente.',
+  save: 'Salva modifiche',
+  saving: 'Salvataggio…',
+  saved: 'Marchio della piattaforma salvato',
+  administrators_title: 'Amministratori della piattaforma',
+  administrators_description: 'Possono gestire tutti i tenant e le impostazioni dell’istanza.',
+  administrator_identifier_placeholder: 'ID utente, nome utente o e-mail',
+  add_administrator: 'Aggiungi amministratore',
+  administrator_added: 'Amministratore aggiunto',
+  remove_administrator: 'Rimuovi amministratore',
+};
+export default Object.freeze(platform);

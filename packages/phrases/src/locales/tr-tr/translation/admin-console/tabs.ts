@@ -1,4 +1,5 @@
 const tabs = {
+  platform_settings: 'Platform ayarları',
   actions: 'Actions',
   get_started: 'Başla',
   dashboard: 'Gösterge Paneli',

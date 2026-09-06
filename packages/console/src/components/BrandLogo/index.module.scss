@@ -20,6 +20,14 @@
   mask: url('@logto/core-kit/assets/iden-mark.svg') center / contain no-repeat;
 }
 
+.customMark {
+  display: block;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  object-fit: contain;
+}
+
 .name {
   color: var(--color-text);
   font-size: 24px;

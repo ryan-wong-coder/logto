@@ -1,4 +1,5 @@
 const tabs = {
+  platform_settings: '平台設定',
   actions: '流程擴充',
   get_started: '開始上手',
   dashboard: '儀表板',

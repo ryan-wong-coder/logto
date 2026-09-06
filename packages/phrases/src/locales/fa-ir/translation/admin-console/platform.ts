@@ -1,0 +1,26 @@
+const platform = {
+  title: 'تنظیمات پلتفرم',
+  subtitle: 'مدیران بین مستأجرها و ظاهر سراسری پلتفرم را مدیریت کنید.',
+  branding_title: 'برند پلتفرم',
+  branding_description: 'در کنسول، احراز هویت، مرکز حساب، دموها و مرکز راهنما اعمال می‌شود.',
+  product_name: 'نام محصول',
+  slogan: 'شعار',
+  light_logo: 'نشان زمینه روشن',
+  dark_logo: 'نشان زمینه تیره',
+  upload_logo: 'بارگذاری نشان',
+  uploading: 'در حال بارگذاری…',
+  logo_uploaded: 'نشان بارگذاری شد',
+  hide_open_source_notice: 'پنهان کردن اعلان متن‌باز',
+  hide_open_source_notice_description:
+    'پیوندهای انتساب قابل مشاهده را پنهان می‌کند و فایل‌های مجوز و منبع را نگه می‌دارد.',
+  save: 'ذخیره تغییرات',
+  saving: 'در حال ذخیره…',
+  saved: 'برند پلتفرم ذخیره شد',
+  administrators_title: 'مدیران پلتفرم',
+  administrators_description: 'می‌توانند همه مستأجرها و تنظیمات نمونه را مدیریت کنند.',
+  administrator_identifier_placeholder: 'شناسه، نام کاربری یا ایمیل',
+  add_administrator: 'افزودن مدیر',
+  administrator_added: 'مدیر پلتفرم افزوده شد',
+  remove_administrator: 'حذف مدیر پلتفرم',
+};
+export default Object.freeze(platform);

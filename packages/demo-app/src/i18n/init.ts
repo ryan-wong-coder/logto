@@ -7,8 +7,6 @@ import { initReactI18next } from 'react-i18next';
 
 import { getBrandedPhrases } from '../product-brand';
 
-const brandedPhrases = getBrandedPhrases(resources);
-
 const initI18n = async (language?: LanguageTag) =>
   i18next
     .use(initReactI18next)
@@ -18,8 +16,8 @@ const initI18n = async (language?: LanguageTag) =>
         Object.entries(interfaceResources).map(([locale, phrases]) => [
           locale,
           {
-            ...Object.entries(brandedPhrases).find(([key]) => key === locale)?.[1],
-            interface: phrases,
+            ...Object.entries(getBrandedPhrases(resources)).find(([key]) => key === locale)?.[1],
+            interface: getBrandedPhrases(phrases),
           },
         ])
       ),

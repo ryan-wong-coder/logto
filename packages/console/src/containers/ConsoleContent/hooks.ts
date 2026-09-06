@@ -2,7 +2,7 @@ import { Prompt, useLogto } from '@logto/react';
 import { getTenantOrganizationId } from '@logto/schemas';
 import { useContext, useEffect, useState } from 'react';
 
-import { isTenantManagementEnabled } from '@/consts/env';
+import { isCloud, isTenantManagementEnabled } from '@/consts/env';
 import { TenantsContext } from '@/contexts/TenantsProvider';
 import useCurrentTenantScopes from '@/hooks/use-current-tenant-scopes';
 import useRedirectUri from '@/hooks/use-redirect-uri';
@@ -25,6 +25,10 @@ const useTenantScopeListener = () => {
   const { scopes, isLoading } = useCurrentTenantScopes();
 
   useEffect(() => {
+    if (!isCloud) {
+      return;
+    }
+
     (async () => {
       const organizationId = getTenantOrganizationId(currentTenantId);
       const claims = await getOrganizationTokenClaims(organizationId);
@@ -42,7 +46,7 @@ const useTenantScopeListener = () => {
   }, [currentTenantId, isLoading, navigateTenant, removeTenant, scopes?.length]);
 
   useEffect(() => {
-    if (!isTenantManagementEnabled || isLoading || tokenClaims === undefined) {
+    if (!isCloud || !isTenantManagementEnabled || isLoading || tokenClaims === undefined) {
       return;
     }
     const hasScopesGranted = scopes?.some((scope) => !tokenClaims.includes(scope));

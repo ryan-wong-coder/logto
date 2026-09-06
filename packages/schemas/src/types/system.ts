@@ -155,6 +155,39 @@ export const emailServiceProviderGuard: Readonly<{
   [EmailServiceProviderKey.EmailServiceProvider]: emailServiceConfigGuard,
 });
 
+// Self-hosted platform branding
+export const platformBrandingConfigGuard = z.object({
+  productName: z.string().trim().min(1).max(64),
+  slogan: z.string().trim().max(160),
+  logoUrl: z
+    .string()
+    .max(2048)
+    .refine((value) => value.startsWith('/') || z.string().url().safeParse(value).success)
+    .optional(),
+  darkLogoUrl: z
+    .string()
+    .max(2048)
+    .refine((value) => value.startsWith('/') || z.string().url().safeParse(value).success)
+    .optional(),
+  hideOpenSourceNotice: z.boolean(),
+});
+
+export type PlatformBrandingConfig = z.infer<typeof platformBrandingConfigGuard>;
+
+export enum PlatformBrandingKey {
+  PlatformBranding = 'platformBranding',
+}
+
+export type PlatformBrandingType = {
+  [PlatformBrandingKey.PlatformBranding]: PlatformBrandingConfig;
+};
+
+export const platformBrandingGuard: Readonly<{
+  [key in PlatformBrandingKey]: ZodType<PlatformBrandingType[key]>;
+}> = Object.freeze({
+  [PlatformBrandingKey.PlatformBranding]: platformBrandingConfigGuard,
+});
+
 // Demo social connectors
 export enum DemoSocialProvider {
   Google = 'google',
@@ -258,20 +291,23 @@ export type SystemKey =
   | StorageProviderKey
   | DemoSocialKey
   | CloudflareKey
-  | EmailServiceProviderKey;
+  | EmailServiceProviderKey
+  | PlatformBrandingKey;
 
 export type SystemType =
   | AlterationStateType
   | StorageProviderType
   | DemoSocialType
   | CloudflareType
-  | EmailServiceProviderType;
+  | EmailServiceProviderType
+  | PlatformBrandingType;
 
 export type SystemGuard = typeof alterationStateGuard &
   typeof storageProviderGuard &
   typeof demoSocialGuard &
   typeof cloudflareGuard &
-  typeof emailServiceProviderGuard;
+  typeof emailServiceProviderGuard &
+  typeof platformBrandingGuard;
 
 export const systemKeys: readonly SystemKey[] = Object.freeze([
   ...Object.values(AlterationStateKey),
@@ -279,6 +315,7 @@ export const systemKeys: readonly SystemKey[] = Object.freeze([
   ...Object.values(DemoSocialKey),
   ...Object.values(CloudflareKey),
   ...Object.values(EmailServiceProviderKey),
+  ...Object.values(PlatformBrandingKey),
 ]);
 
 export const systemGuards: SystemGuard = Object.freeze({
@@ -287,4 +324,5 @@ export const systemGuards: SystemGuard = Object.freeze({
   ...demoSocialGuard,
   ...cloudflareGuard,
   ...emailServiceProviderGuard,
+  ...platformBrandingGuard,
 });

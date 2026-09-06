@@ -35,7 +35,6 @@
     }
   }
 
-
   .card {
     background: var(--color-layer-1);
     border-radius: 16px;
@@ -141,7 +140,6 @@
       }
     }
 
-
     .continue {
       margin-top: _.unit(12);
       display: flex;
@@ -204,6 +202,13 @@
     height: 28px;
     background: currentcolor;
     mask: url('@logto/core-kit/assets/iden-mark.svg') center / contain no-repeat;
+  }
+
+  .brandLogo {
+    display: block;
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
   }
 }
 

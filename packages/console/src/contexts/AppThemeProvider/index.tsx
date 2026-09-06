@@ -88,7 +88,12 @@ export function AppThemeProvider({ children }: Props) {
       const uninstallHelpNavigation = installSelfHostedHelpNavigation();
       const favicon = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
       if (favicon) {
-        favicon.setAttribute('href', idenAppIcon);
+        favicon.setAttribute(
+          'href',
+          theme === Theme.Dark
+            ? (brandProfile.darkLogoUrl ?? brandProfile.logoUrl ?? idenAppIcon)
+            : (brandProfile.logoUrl ?? brandProfile.darkLogoUrl ?? idenAppIcon)
+        );
       }
 
       return uninstallHelpNavigation;

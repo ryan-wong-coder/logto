@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { cloudApi } from '@/consts';
+import { isSelfHostedParityEnabled } from '@/consts/env';
 import { TenantsContext } from '@/contexts/TenantsProvider';
 
 const responseErrorBodyGuard = z.object({
@@ -76,6 +77,7 @@ export const useCloudApi = <R extends ConsoleCloudRouter = typeof router>({
 
 type CreateTenantOptions = UseCloudApiProps &
   Pick<ReturnType<typeof useLogto>, 'isAuthenticated' | 'getOrganizationToken'> & {
+    getAccessToken?: ReturnType<typeof useLogto>['getAccessToken'];
     tenantId: string;
     language: string;
   };
@@ -83,6 +85,7 @@ type CreateTenantOptions = UseCloudApiProps &
 export const createTenantApi = ({
   hideErrorToast = false,
   isAuthenticated,
+  getAccessToken,
   getOrganizationToken,
   tenantId,
   language,
@@ -93,7 +96,9 @@ export const createTenantApi = ({
       if (isAuthenticated) {
         return {
           Authorization: `Bearer ${
-            (await getOrganizationToken(getTenantOrganizationId(tenantId))) ?? ''
+            (isSelfHostedParityEnabled
+              ? await getAccessToken?.(cloudApi.indicator)
+              : await getOrganizationToken(getTenantOrganizationId(tenantId))) ?? ''
           }`,
           'Accept-Language': language,
         };
@@ -112,17 +117,25 @@ export const useAuthedCloudApi = ({ hideErrorToast = false }: UseCloudApiProps =
 > => {
   const { i18n } = useTranslation();
   const { currentTenantId } = useContext(TenantsContext);
-  const { isAuthenticated, getOrganizationToken } = useLogto();
+  const { isAuthenticated, getAccessToken, getOrganizationToken } = useLogto();
   const api = useMemo(
     () =>
       createTenantApi({
         hideErrorToast,
         isAuthenticated,
+        getAccessToken,
         getOrganizationToken,
         tenantId: currentTenantId,
         language: i18n.language,
       }),
-    [currentTenantId, getOrganizationToken, hideErrorToast, isAuthenticated, i18n.language]
+    [
+      currentTenantId,
+      getAccessToken,
+      getOrganizationToken,
+      hideErrorToast,
+      isAuthenticated,
+      i18n.language,
+    ]
   );
 
   return api;

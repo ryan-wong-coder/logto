@@ -1,9 +1,7 @@
-import { buildOrganizationUrn } from '@logto/core-kit';
 import {
   adminTenantId,
   getManagementApiResourceIndicator,
   getMapiProxyM2mApp,
-  getTenantOrganizationId,
   PredefinedScope,
   TenantScope,
 } from '@logto/schemas';
@@ -15,9 +13,10 @@ import { z } from 'zod';
 
 import { EnvSet, getTenantEndpoint } from '#src/env-set/index.js';
 import RequestError from '#src/errors/RequestError/index.js';
-import { verifyBearerTokenFromRequest } from '#src/middleware/koa-auth/index.js';
 import type TenantContext from '#src/tenants/TenantContext.js';
 import assertThat from '#src/utils/assert-that.js';
+
+import { verifySelfHostedTenantUser } from './tenant-user-auth.js';
 
 const tokenResponseGuard = z.object({ access_token: z.string(), expires_in: z.number() });
 const methodGuard: z.ZodType<Method> = z.enum([
@@ -81,11 +80,7 @@ export default function initSelfHostedMapiProxy(tenant: TenantContext): Koa {
       new RequestError({ code: 'auth.forbidden', status: 403 })
     );
     const tenantId = z.string().parse(ctx.params.tenantId);
-    const { scopes } = await verifyBearerTokenFromRequest(
-      tenant.envSet,
-      ctx.request,
-      buildOrganizationUrn(getTenantOrganizationId(tenantId))
-    );
+    const { scopes } = await verifySelfHostedTenantUser(tenant, ctx.request, tenantId);
     const requiredScope = ['GET', 'HEAD', 'OPTIONS'].includes(ctx.method)
       ? TenantScope.ReadData
       : ctx.method === 'DELETE'

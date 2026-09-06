@@ -1,0 +1,26 @@
+const platform = {
+  title: 'การตั้งค่าแพลตฟอร์ม',
+  subtitle: 'จัดการผู้ดูแลข้ามผู้เช่าและรูปลักษณ์ส่วนกลางของแพลตฟอร์ม',
+  branding_title: 'แบรนด์แพลตฟอร์ม',
+  branding_description: 'ใช้กับคอนโซล การยืนยันตัวตน ศูนย์บัญชี เดโม และศูนย์ช่วยเหลือ',
+  product_name: 'ชื่อผลิตภัณฑ์',
+  slogan: 'สโลแกน',
+  light_logo: 'โลโก้ธีมสว่าง',
+  dark_logo: 'โลโก้ธีมมืด',
+  upload_logo: 'อัปโหลดโลโก้',
+  uploading: 'กำลังอัปโหลด…',
+  logo_uploaded: 'อัปโหลดโลโก้แล้ว',
+  hide_open_source_notice: 'ซ่อนประกาศโอเพนซอร์ส',
+  hide_open_source_notice_description:
+    'ซ่อนลิงก์การระบุที่มาในหน้าจอ แต่ยังคงไฟล์สัญญาอนุญาตและซอร์สไว้',
+  save: 'บันทึกการเปลี่ยนแปลง',
+  saving: 'กำลังบันทึก…',
+  saved: 'บันทึกแบรนด์แพลตฟอร์มแล้ว',
+  administrators_title: 'ผู้ดูแลแพลตฟอร์ม',
+  administrators_description: 'จัดการผู้เช่าทั้งหมดและการตั้งค่าระดับอินสแตนซ์ได้',
+  administrator_identifier_placeholder: 'ID ชื่อผู้ใช้ หรืออีเมล',
+  add_administrator: 'เพิ่มผู้ดูแล',
+  administrator_added: 'เพิ่มผู้ดูแลแพลตฟอร์มแล้ว',
+  remove_administrator: 'นำผู้ดูแลออก',
+};
+export default Object.freeze(platform);

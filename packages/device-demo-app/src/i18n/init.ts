@@ -1,9 +1,10 @@
+import { rebrandProductPhrases } from '@logto/core-kit';
 import { interfaceResources } from '@logto/phrases-experience/lib/interface';
 import i18next from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 
-import { productBrand } from '../product-brand';
+import { isCloudBuild, productBrand } from '../product-brand';
 
 export default async function initI18n() {
   await i18next
@@ -13,7 +14,7 @@ export default async function initI18n() {
       resources: Object.fromEntries(
         Object.entries(interfaceResources).map(([locale, phrases]) => [
           locale,
-          { interface: phrases },
+          { interface: rebrandProductPhrases(phrases, isCloudBuild, productBrand.productName) },
         ])
       ),
       fallbackLng: 'en',

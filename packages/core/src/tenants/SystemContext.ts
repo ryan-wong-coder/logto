@@ -13,6 +13,9 @@ import {
   type SystemKey,
   type ProtectedAppConfigProviderData,
   protectedAppConfigProviderDataGuard,
+  type PlatformBrandingConfig,
+  PlatformBrandingKey,
+  platformBrandingConfigGuard,
 } from '@logto/schemas';
 import type { CommonQueryMethods } from '@silverhand/slonik';
 import { type ZodType } from 'zod';
@@ -30,6 +33,7 @@ export default class SystemContext {
   public protectedAppConfigProviderConfig?: ProtectedAppConfigProviderData;
   public protectedAppHostnameProviderConfig?: HostnameProviderData;
   public emailServiceProviderConfig?: EmailServiceConfig;
+  public platformBrandingConfig?: PlatformBrandingConfig;
 
   async loadProviderConfigs(pool: CommonQueryMethods) {
     await Promise.all([
@@ -82,6 +86,13 @@ export default class SystemContext {
           emailServiceConfigGuard
         );
       })(),
+      (async () => {
+        this.platformBrandingConfig = await this.loadConfig(
+          pool,
+          PlatformBrandingKey.PlatformBranding,
+          platformBrandingConfigGuard
+        );
+      })(),
     ]);
 
     if (EnvSet.values.isSelfHostedParityEnabled) {
@@ -92,9 +103,10 @@ export default class SystemContext {
 
       this.experienceBlobsProviderConfig ??= localExperienceStorage;
       this.experienceZipsProviderConfig ??= localExperienceStorage;
+      this.storageProviderConfig ??= localExperienceStorage;
       this.emailServiceProviderConfig ??= {
         provider: EmailServiceProvider.LocalOutbox,
-        fromName: 'Logto',
+        fromName: this.platformBrandingConfig?.productName ?? 'iden',
         fromEmail: 'no-reply@localhost',
       };
     }

@@ -1,4 +1,5 @@
 const tab_sections = {
+  platform: 'المنصة',
   overview: 'نظرة عامة',
   authentication: 'المصادقة',
   authorization: 'الترخيص',

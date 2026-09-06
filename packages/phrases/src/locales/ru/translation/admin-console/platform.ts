@@ -1,0 +1,26 @@
+const platform = {
+  title: 'Настройки платформы',
+  subtitle: 'Управление межтенантными администраторами и внешним видом платформы.',
+  branding_title: 'Бренд платформы',
+  branding_description: 'Применяется к консоли, аутентификации, центру аккаунта, демо и справке.',
+  product_name: 'Название продукта',
+  slogan: 'Слоган',
+  light_logo: 'Логотип светлой темы',
+  dark_logo: 'Логотип тёмной темы',
+  upload_logo: 'Загрузить логотип',
+  uploading: 'Загрузка…',
+  logo_uploaded: 'Логотип загружен',
+  hide_open_source_notice: 'Скрыть уведомление об открытом коде',
+  hide_open_source_notice_description:
+    'Скрывает видимые ссылки атрибуции, сохраняя файлы лицензии и исходного кода.',
+  save: 'Сохранить изменения',
+  saving: 'Сохранение…',
+  saved: 'Бренд платформы сохранён',
+  administrators_title: 'Администраторы платформы',
+  administrators_description: 'Могут управлять всеми тенантами и настройками экземпляра.',
+  administrator_identifier_placeholder: 'ID, имя пользователя или эл. почта',
+  add_administrator: 'Добавить администратора',
+  administrator_added: 'Администратор добавлен',
+  remove_administrator: 'Удалить администратора',
+};
+export default Object.freeze(platform);
