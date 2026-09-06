@@ -5,7 +5,7 @@ import { type DeepPartial } from '#src/test-utils/tenant.js';
 import { createContextWithRouteParameters } from '#src/utils/test-utils.js';
 
 import { assembleSwaggerDocument } from './documents.js';
-import { devFeatureSchemaExtension } from './general.js';
+import { devFeatureSchemaExtension, selfHostedOnlyExtension } from './general.js';
 
 const originalIsDevFeaturesEnabled = EnvSet.values.isDevFeaturesEnabled;
 const originalIsCloud = EnvSet.values.isCloud;
@@ -111,6 +111,39 @@ describe('assembleSwaggerDocument', () => {
 
     expect(Boolean(document.paths['/api/users/{userId}']?.get)).toBe(exposed);
     expect(base.paths['/api/users/{userId}']?.get).toBeDefined();
+  });
+
+  it('removes an unused tag when a self-hosted-only document is unavailable', () => {
+    Reflect.set(EnvSet.values, 'isCloud', false);
+    Reflect.set(EnvSet.values, 'isSelfHostedParityEnabled', false);
+    const originalBase = createBaseDocument();
+    const base: OpenAPIV3.Document = {
+      ...originalBase,
+      paths: {
+        ...originalBase.paths,
+        '/api/platform-branding': {
+          get: {
+            tags: ['Platform branding'],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+      tags: [{ name: 'Platform branding' }],
+    };
+    const supplement = {
+      [selfHostedOnlyExtension]: true,
+      tags: [{ name: 'Platform branding', description: 'Self-hosted platform identity.' }],
+      paths: { '/api/platform-branding': { get: {} } },
+    } as unknown as DeepPartial<OpenAPIV3.Document>;
+
+    const document = assembleSwaggerDocument(
+      [supplement],
+      base,
+      createContextWithRouteParameters()
+    );
+
+    expect(document.paths['/api/platform-branding']).toBeUndefined();
+    expect(document.tags).toEqual([]);
   });
 
   it('should prune dev feature properties from the assembled document when dev features are disabled', () => {

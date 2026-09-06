@@ -1,5 +1,11 @@
 {
   "x-logto-self-hosted-only": true,
+  "tags": [
+    {
+      "name": "Platform branding",
+      "description": "Public and administrator-managed identity for a self-hosted platform."
+    }
+  ],
   "paths": {
     "/api/platform-branding": {
       "get": {
