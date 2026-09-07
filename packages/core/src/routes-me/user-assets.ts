@@ -19,7 +19,7 @@ import koaGuard from '#src/middleware/koa-guard.js';
 import type { RouterInitArgs } from '#src/routes/types.js';
 import SystemContext from '#src/tenants/SystemContext.js';
 import assertThat from '#src/utils/assert-that.js';
-import { buildUploadFile } from '#src/utils/storage/index.js';
+import { buildUploadFile, getUserAssetsPublicUrl } from '#src/utils/storage/index.js';
 
 import type { AuthedMeRouter } from './types.js';
 
@@ -29,7 +29,9 @@ import type { AuthedMeRouter } from './types.js';
  *
  * @todo: Refactor to reuse as much code as possible. @Charles
  */
-export default function userAssetsRoutes<T extends AuthedMeRouter>(...[router]: RouterInitArgs<T>) {
+export default function userAssetsRoutes<T extends AuthedMeRouter>(
+  ...[router, tenant]: RouterInitArgs<T>
+) {
   router.get(
     '/user-assets/service-status',
     koaGuard({
@@ -88,7 +90,7 @@ export default function userAssetsRoutes<T extends AuthedMeRouter>(...[router]: 
       try {
         const { url } = await uploadFile(await readFile(file.filepath), objectKey, {
           contentType: file.mimetype,
-          publicUrl: storageProviderConfig.publicUrl,
+          publicUrl: getUserAssetsPublicUrl(storageProviderConfig, tenant.envSet.endpoint),
         });
 
         const result: UserAssets = {

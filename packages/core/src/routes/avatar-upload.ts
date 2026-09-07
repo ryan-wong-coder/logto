@@ -109,11 +109,13 @@ export const uploadAvatar = async ({
   file,
   storageProviderConfig,
   objectKeyPrefix,
+  publicUrl,
   logError,
 }: {
   file: UploadedFile;
   storageProviderConfig?: StorageProviderData;
   objectKeyPrefix: string;
+  publicUrl?: string;
   logError: (error: unknown) => void;
 }): Promise<UserAssets> => {
   assertThat(file.size <= maxUploadFileSize, 'guard.file_size_exceeded');
@@ -134,7 +136,7 @@ export const uploadAvatar = async ({
   try {
     return await uploadFile(fileContent, objectKey, {
       contentType: avatarMimeType,
-      publicUrl: storageProviderConfig.publicUrl,
+      publicUrl: publicUrl ?? storageProviderConfig.publicUrl,
     });
   } catch (error: unknown) {
     logError(error);

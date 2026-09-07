@@ -33,6 +33,18 @@ describe('local object storage', () => {
     });
   });
 
+  it('returns an absolute, URL-encoded public URL when a public base is provided', async () => {
+    await withStorage(async (storage) => {
+      await expect(
+        storage.uploadFile(Buffer.from('image'), 'default/user/company logo 中文.png', {
+          publicUrl: 'https://identity.example.com/api/user-assets/files',
+        })
+      ).resolves.toEqual({
+        url: 'https://identity.example.com/api/user-assets/files/default/user/company%20logo%20%E4%B8%AD%E6%96%87.png',
+      });
+    });
+  });
+
   it.each(['../outside', '/absolute/path'])(
     'rejects object key %s outside the root',
     async (key) => {

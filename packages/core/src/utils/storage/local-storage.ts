@@ -21,7 +21,12 @@ export const buildLocalStorage = (rootPath: string) => {
     await fs.mkdir(path.dirname(target), { recursive: true });
     await fs.writeFile(target, data);
 
-    return { url: publicUrl ? `${publicUrl}/${objectKey}` : `/${objectKey}` };
+    const publicObjectPath = objectKey
+      .split('/')
+      .map((segment) => encodeURIComponent(segment))
+      .join('/');
+
+    return { url: publicUrl ? `${publicUrl}/${publicObjectPath}` : `/${publicObjectPath}` };
   };
 
   const downloadFile = async (objectKey: string) =>

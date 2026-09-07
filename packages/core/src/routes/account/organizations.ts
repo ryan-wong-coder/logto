@@ -26,6 +26,7 @@ import koaGuard from '#src/middleware/koa-guard.js';
 import SystemContext from '#src/tenants/SystemContext.js';
 import assertThat from '#src/utils/assert-that.js';
 import { getConsoleLogFromContext } from '#src/utils/console.js';
+import { getUserAssetsPublicUrl } from '#src/utils/storage/index.js';
 
 import { uploadAvatar } from '../avatar-upload.js';
 import type { RouterInitArgs, UserRouter } from '../types.js';
@@ -48,8 +49,9 @@ const assertRecentVerification = (identityVerified?: boolean) => {
 };
 
 export default function accountOrganizationRoutes<T extends UserRouter>(
-  ...[router, { id: tenantId, libraries, queries }]: RouterInitArgs<T>
+  ...[router, tenant]: RouterInitArgs<T>
 ) {
+  const { id: tenantId, libraries, queries } = tenant;
   const { organizationAutonomy, organizationInvitations } = libraries;
 
   const sendInvitationEmail = async (
@@ -235,6 +237,9 @@ export default function accountOrganizationRoutes<T extends UserRouter>(
         file,
         storageProviderConfig,
         objectKeyPrefix: `${tenantId}/organizations/${organizationId}`,
+        publicUrl: storageProviderConfig
+          ? getUserAssetsPublicUrl(storageProviderConfig, tenant.envSet.endpoint)
+          : undefined,
         logError: (error) => {
           getConsoleLogFromContext(ctx).error(error);
         },

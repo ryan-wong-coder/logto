@@ -20,6 +20,7 @@ import SystemContext from '#src/tenants/SystemContext.js';
 import type TenantContext from '#src/tenants/TenantContext.js';
 import assertThat from '#src/utils/assert-that.js';
 import { getConsoleLogFromContext } from '#src/utils/console.js';
+import { getUserAssetsPublicUrl } from '#src/utils/storage/index.js';
 
 import { uploadAvatar } from '../avatar-upload.js';
 
@@ -69,8 +70,9 @@ function verifiedInteractionGuard<
 
 export default function interactionProfileRoutes<T extends ExperienceInteractionRouterContext>(
   router: Router<unknown, T>,
-  { id: tenantId, libraries, queries }: TenantContext
+  tenant: TenantContext
 ) {
+  const { id: tenantId, libraries, queries } = tenant;
   router.post(
     `${experienceRoutes.profile}`,
     koaGuard({
@@ -191,6 +193,9 @@ export default function interactionProfileRoutes<T extends ExperienceInteraction
         file,
         storageProviderConfig,
         objectKeyPrefix,
+        publicUrl: storageProviderConfig
+          ? getUserAssetsPublicUrl(storageProviderConfig, tenant.envSet.endpoint)
+          : undefined,
         logError: (error) => {
           getConsoleLogFromContext(ctx).error(error);
         },
