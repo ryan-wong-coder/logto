@@ -8,6 +8,7 @@ import SystemContext from '#src/tenants/SystemContext.js';
 import { assertFirstPartyClient } from '#src/utils/assert-first-party-client.js';
 import assertThat from '#src/utils/assert-that.js';
 import { getConsoleLogFromContext } from '#src/utils/console.js';
+import { getUserAssetsPublicUrl } from '#src/utils/storage/index.js';
 
 import { uploadAvatar } from '../avatar-upload.js';
 import type { UserRouter, RouterInitArgs } from '../types.js';
@@ -15,8 +16,9 @@ import type { UserRouter, RouterInitArgs } from '../types.js';
 import { accountApiPrefix } from './constants.js';
 
 export default function accountUserAssetsRoutes<T extends UserRouter>(
-  ...[router, { id: tenantId, queries }]: RouterInitArgs<T>
+  ...[router, tenant]: RouterInitArgs<T>
 ) {
+  const { id: tenantId, queries } = tenant;
   router.post(
     `${accountApiPrefix}/user-assets/avatar`,
     koaGuard({
@@ -50,6 +52,9 @@ export default function accountUserAssetsRoutes<T extends UserRouter>(
         file,
         storageProviderConfig,
         objectKeyPrefix: `${tenantId}/${userId}`,
+        publicUrl: storageProviderConfig
+          ? getUserAssetsPublicUrl(storageProviderConfig, tenant.envSet.endpoint)
+          : undefined,
         logError: (error) => {
           getConsoleLogFromContext(ctx).error(error);
         },

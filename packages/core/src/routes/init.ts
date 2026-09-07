@@ -36,6 +36,7 @@ import logtoConfigRoutes from './logto-config/index.js';
 import oneTimeTokenRoutes from './one-time-tokens.js';
 import organizationRoutes from './organization/index.js';
 import platformBrandingRoutes from './platform-branding.js';
+import publicUserAssetsRoutes from './public-user-assets.js';
 import publicWellKnownRoutes from './public-wellknown.js';
 import resourceRoutes from './resource.js';
 import resourceScopeRoutes from './resource.scope.js';
@@ -122,6 +123,7 @@ const createRouters = (tenant: TenantContext) => {
   authnRoutes(anonymousRouter, tenant);
   samlApplicationAnonymousRoutes(anonymousRouter, tenant);
   platformBrandingRoutes(anonymousRouter, tenant);
+  publicUserAssetsRoutes(anonymousRouter, tenant);
 
   wellKnownOpenApiRoutes(anonymousRouter, {
     experienceRouters: [experienceRouter],

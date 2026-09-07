@@ -17,13 +17,13 @@ import koaGuard from '#src/middleware/koa-guard.js';
 import SystemContext from '#src/tenants/SystemContext.js';
 import assertThat from '#src/utils/assert-that.js';
 import { getConsoleLogFromContext } from '#src/utils/console.js';
-import { buildUploadFile } from '#src/utils/storage/index.js';
+import { buildUploadFile, getUserAssetsPublicUrl } from '#src/utils/storage/index.js';
 import { getTenantId } from '#src/utils/tenant.js';
 
 import type { ManagementApiRouter, RouterInitArgs } from './types.js';
 
 export default function userAssetsRoutes<T extends ManagementApiRouter>(
-  ...[router]: RouterInitArgs<T>
+  ...[router, tenant]: RouterInitArgs<T>
 ) {
   router.get(
     '/user-assets/service-status',
@@ -86,7 +86,7 @@ export default function userAssetsRoutes<T extends ManagementApiRouter>(
       try {
         const { url } = await uploadFile(await readFile(file.filepath), objectKey, {
           contentType: file.mimetype,
-          publicUrl: storageProviderConfig.publicUrl,
+          publicUrl: getUserAssetsPublicUrl(storageProviderConfig, tenant.envSet.endpoint),
         });
 
         const result: UserAssets = {
